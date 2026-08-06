@@ -5,6 +5,7 @@ import io.github.danielcampossantos.model.SelectionArea;
 import io.github.danielcampossantos.service.*;
 import io.github.danielcampossantos.ui.navigation.SceneManager;
 import io.github.danielcampossantos.ui.navigation.SceneType;
+import io.github.danielcampossantos.ui.popup.PopupType;
 import io.github.danielcampossantos.ui.tree.NodeType;
 import io.github.danielcampossantos.ui.tree.SelectionTreeNode;
 import io.github.danielcampossantos.ui.view.PdfPageView;
@@ -537,14 +538,12 @@ public final class AreaSelectionController {
             Path configPath = selectionConfigService.write(workspace, selections);
             List<Path> generatedFiles = imageService.crop(workspace.getTemporaryDirectory(), configPath);
 
-            PopupService.getInstance().success(
+            PopupService.getInstance().show(
+                    PopupType.SUCCESS,
                     "Processamento concluído",
-                    "%d recortes foram criados.%n%nConfiguração:%n%s%n%nRecortes:%n%s"
-                            .formatted(
-                                    generatedFiles.size(),
-                                    configPath,
-                                    workspace.getTemporaryDirectory().resolve("crops")
-                            )
+                    "%d recortes foram criados".formatted(generatedFiles.size()),
+
+                    () -> SceneManager.getInstance().show(SceneType.PRESENTATION_PREVIEW)
             );
 
             log.info("Processamento concluído. Configuração: {}", configPath);

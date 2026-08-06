@@ -21,6 +21,8 @@ public final class SceneManager {
 
     private Stage stage;
 
+    private Scene scene;
+
     @Getter
     private AppWindow window;
 
@@ -36,7 +38,6 @@ public final class SceneManager {
     }
 
     public void initialize(Stage stage) {
-        Scene scene;
         this.stage = stage;
 
         window = new AppWindow(stage);
@@ -60,7 +61,7 @@ public final class SceneManager {
     }
 
     public void show(SceneType sceneType) {
-        Parent root = sceneType == SceneType.AREA_SELECTION
+        Parent root = shouldReload(sceneType)
                 ? loadView(sceneType)
                 : cache.computeIfAbsent(sceneType, this::loadView);
 
@@ -69,6 +70,11 @@ public final class SceneManager {
 
         stage.setTitle(sceneType.getTitle());
         stage.show();
+    }
+
+    private boolean shouldReload(SceneType sceneType) {
+        return sceneType == SceneType.AREA_SELECTION
+                || sceneType == SceneType.PRESENTATION_PREVIEW;
     }
 
     public void clear(SceneType sceneType) {

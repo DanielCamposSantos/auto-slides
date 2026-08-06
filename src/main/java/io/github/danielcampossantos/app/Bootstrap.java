@@ -21,6 +21,7 @@ public final class Bootstrap {
 
         stage.getIcons().setAll(
                 AppIconFactory.create(16),
+                AppIconFactory.create(24),
                 AppIconFactory.create(32),
                 AppIconFactory.create(48),
                 AppIconFactory.create(64),

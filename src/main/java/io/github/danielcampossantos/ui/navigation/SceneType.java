@@ -1,8 +1,10 @@
 package io.github.danielcampossantos.ui.navigation;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @Getter
+@RequiredArgsConstructor
 public enum SceneType {
 
     HOME(
@@ -12,19 +14,15 @@ public enum SceneType {
 
     AREA_SELECTION(
             "/ui/fxml/area-selection.fxml",
-            "Seleção"
+            "Seleção de Áreas"
+    ),
+
+    PRESENTATION_PREVIEW(
+            "/ui/fxml/presentation-preview.fxml",
+            "Montagem da Apresentação"
     );
 
     private final String fxml;
 
     private final String title;
-
-    SceneType(String fxml, String title) {
-
-        this.fxml = fxml;
-
-        this.title = title;
-
-    }
-
 }
