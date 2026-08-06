@@ -8,6 +8,8 @@ public record SelectionArea(
         double x,
         double y,
         double width,
-        double height
+        double height,
+        double viewportWidth,
+        double viewportHeight
 ) {
 }

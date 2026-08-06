@@ -29,21 +29,14 @@ public final class PdfPageView extends StackPane {
     private Consumer<SelectionArea> onSelectionRemoved;
 
     public PdfPageView(PdfPage page) {
-
         this.page = page;
-
         imageView = new ImageView();
-
         selectionPane = new SelectionPane(page);
-
         initialize();
-
     }
 
     private void initialize() {
-
         setAlignment(Pos.CENTER);
-
         getStyleClass().add("pdf-page");
 
         Image image = new Image(page.imagePath().toUri().toString());
@@ -55,38 +48,30 @@ public final class PdfPageView extends StackPane {
         imageView.setCache(true);
 
         selectionPane.setOnSelectionCreated(area -> {
-
             if (onSelectionCreated != null) {
                 onSelectionCreated.accept(area);
             }
-
         });
 
         selectionPane.setOnSelectionRemoved(area -> {
-
             if (onSelectionRemoved != null) {
                 onSelectionRemoved.accept(area);
             }
-
         });
 
         getChildren().addAll(imageView, selectionPane);
 
-        imageView.layoutBoundsProperty().addListener((obs, oldValue, newValue) -> resizeSelectionPane());
+        imageView.layoutBoundsProperty().addListener((observable, oldBounds, newBounds) -> resizeSelectionPane());
 
         Platform.runLater(this::resizeSelectionPane);
-
     }
 
     private void resizeSelectionPane() {
-
         double width = imageView.getBoundsInLocal().getWidth();
         double height = imageView.getBoundsInLocal().getHeight();
 
         selectionPane.setPrefSize(width, height);
         selectionPane.setMinSize(width, height);
         selectionPane.setMaxSize(width, height);
-
     }
-
 }

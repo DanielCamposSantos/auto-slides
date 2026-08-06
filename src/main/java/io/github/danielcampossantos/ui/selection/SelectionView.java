@@ -50,8 +50,11 @@ public final class SelectionView extends Group {
         removeButton.setCursor(Cursor.HAND);
 
         removeButton.setStyle("""
-                -fx-background-color:#ED4245;
-                -fx-background-radius:7;
+                -fx-background-color: #ED4245;
+                -fx-background-radius: 0 0 0 7;
+                -fx-border-color: #5865F2;
+                -fx-border-width: 0 0 2 2;
+                -fx-border-radius: 0 0 0 7;
                 """);
 
         removeButton.getChildren().add(icon);

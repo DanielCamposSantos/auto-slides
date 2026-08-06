@@ -1,76 +1,118 @@
 package io.github.danielcampossantos.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.danielcampossantos.config.CutConfig;
-import io.github.danielcampossantos.model.PageModel;
-import io.github.danielcampossantos.model.PdfConfigModel;
+import io.github.danielcampossantos.model.CropAreaConfig;
+import io.github.danielcampossantos.model.PageCropConfig;
+import io.github.danielcampossantos.model.PdfCropConfig;
+import io.github.danielcampossantos.model.SelectionConfig;
 import lombok.extern.log4j.Log4j2;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 @Log4j2
-public class ImageService {
+public final class ImageService {
+
+    private static final String OUTPUT_DIRECTORY = "crops";
+
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public void recortarImagensTemporarias(Path pastaTemporaria, String prefixo) throws IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
+    public List<Path> crop(Path temporaryDirectory, Path configPath) throws IOException {
+        SelectionConfig config = objectMapper.readValue(configPath.toFile(), SelectionConfig.class);
+        Path outputDirectory = temporaryDirectory.resolve(OUTPUT_DIRECTORY);
 
-        try (InputStream inputStream = classLoader.getResourceAsStream("config/cut-config.json")) {
-            if (inputStream == null) {
-                throw new IOException("Configuracao nao encontrada");
-            }
+        Files.createDirectories(outputDirectory);
 
-            CutConfig cutConfig = objectMapper.readValue(inputStream, CutConfig.class);
-            PdfConfigModel configModel = cutConfig.getConfig(prefixo);
+        List<Path> generatedFiles = new ArrayList<>();
 
-            if (configModel == null || configModel.paginas() == null) {
-                log.warn("Nenhuma configuracao encontrada para o prefixo: {}", prefixo);
-                return;
-            }
-
-            for (PageModel page : configModel.paginas()) {
-                String nomeImagemOriginal = prefixo + "-imagem-pagina-" + page.numeroPagina() + ".png";
-                File arquivoOriginal = pastaTemporaria.resolve(nomeImagemOriginal).toFile();
-
-                if (!arquivoOriginal.exists()) {
-                    log.warn("Pagina {} nao existe no PDF, ignorando", page.numeroPagina());
-                    continue;
-                }
-
-                recortarESalvar(arquivoOriginal, page, pastaTemporaria, prefixo);
-            }
+        for (PdfCropConfig pdf : config.pdfs()) {
+            generatedFiles.addAll(cropPdf(temporaryDirectory, outputDirectory, pdf));
         }
+
+        log.info("{} recortes criados em {}", generatedFiles.size(), outputDirectory);
+
+        return List.copyOf(generatedFiles);
     }
 
-    private void recortarESalvar(File arquivoOriginal, PageModel page, Path pastaTemporaria, String prefixo) throws IOException {
-        BufferedImage imagemOriginal = ImageIO.read(arquivoOriginal);
+    private List<Path> cropPdf(Path temporaryDirectory, Path outputDirectory, PdfCropConfig pdf) throws IOException {
+        Path pdfDirectory = outputDirectory.resolve("pdf-" + pdf.pdfNumber());
 
-        double multiplicadorEscala = 300.0 / 72.0;
+        Files.createDirectories(pdfDirectory);
 
-        int xReal = (int) Math.round(page.x() * multiplicadorEscala);
-        int yReal = (int) Math.round(page.y() * multiplicadorEscala);
-        int larguraReal = (int) Math.round(page.largura() * multiplicadorEscala);
-        int alturaReal = (int) Math.round(page.altura() * multiplicadorEscala);
+        List<Path> generatedFiles = new ArrayList<>();
 
-        int x = Math.min(xReal, imagemOriginal.getWidth() - 1);
-        int y = Math.min(yReal, imagemOriginal.getHeight() - 1);
-        int largura = Math.min(larguraReal, imagemOriginal.getWidth() - x);
-        int altura = Math.min(alturaReal, imagemOriginal.getHeight() - y);
-
-        if (largura <= 0 || altura <= 0) {
-            return;
+        for (PageCropConfig page : pdf.pages()) {
+            generatedFiles.addAll(cropPage(temporaryDirectory, pdfDirectory, page));
         }
 
-        BufferedImage imagemRecortada = imagemOriginal.getSubimage(x, y, largura, altura);
-        String nomeDestino = prefixo + "-imagem-pagina-" + page.numeroPagina() + "_recortada.png";
-        File arquivoDestino = pastaTemporaria.resolve(nomeDestino).toFile();
+        return generatedFiles;
+    }
 
-        ImageIO.write(imagemRecortada, "PNG", arquivoDestino);
-        log.info("Recorte criado: {}", arquivoDestino.getName());
+    private List<Path> cropPage(Path temporaryDirectory, Path pdfDirectory, PageCropConfig page) throws IOException {
+        Path sourcePath = temporaryDirectory.resolve(page.sourceImage());
+
+        if (!Files.exists(sourcePath)) {
+            throw new IOException("Imagem temporária não encontrada: " + sourcePath);
+        }
+
+        BufferedImage sourceImage = ImageIO.read(sourcePath.toFile());
+
+        if (sourceImage == null) {
+            throw new IOException("Não foi possível ler a imagem: " + sourcePath);
+        }
+
+        List<Path> generatedFiles = new ArrayList<>();
+
+        for (int index = 0; index < page.selections().size(); index++) {
+            CropAreaConfig selection = page.selections().get(index);
+            Path generatedPath = cropSelection(sourceImage, pdfDirectory, page.pageNumber(), index + 1, selection);
+
+            generatedFiles.add(generatedPath);
+        }
+
+        return generatedFiles;
+    }
+
+    private Path cropSelection(
+            BufferedImage sourceImage,
+            Path pdfDirectory,
+            int pageNumber,
+            int selectionNumber,
+            CropAreaConfig selection
+    ) throws IOException {
+        validateBounds(sourceImage, selection);
+
+        BufferedImage croppedImage = sourceImage.getSubimage(
+                selection.x(),
+                selection.y(),
+                selection.width(),
+                selection.height()
+        );
+
+        String shortId = selection.id().toString().substring(0, 8);
+        String fileName = "pagina-%d-selecao-%03d-%s.png".formatted(pageNumber, selectionNumber, shortId);
+        Path destinationPath = pdfDirectory.resolve(fileName);
+
+        ImageIO.write(croppedImage, "PNG", destinationPath.toFile());
+
+        log.info("Recorte criado: {}", destinationPath);
+
+        return destinationPath;
+    }
+
+    private void validateBounds(BufferedImage image, CropAreaConfig selection) {
+        boolean invalidPosition = selection.x() < 0 || selection.y() < 0;
+        boolean invalidSize = selection.width() <= 0 || selection.height() <= 0;
+        boolean exceedsWidth = selection.x() + selection.width() > image.getWidth();
+        boolean exceedsHeight = selection.y() + selection.height() > image.getHeight();
+
+        if (invalidPosition || invalidSize || exceedsWidth || exceedsHeight) {
+            throw new IllegalArgumentException("Área de corte inválida: " + selection);
+        }
     }
 }
