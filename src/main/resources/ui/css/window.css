@@ -1,0 +1,111 @@
+.root {
+    -fx-background-color: transparent;
+}
+
+.app-window {
+    -fx-background-color: transparent;
+    -fx-padding: 1;
+}
+
+.window-frame {
+    -fx-background-color: #1E1F22;
+    -fx-background-radius: 12;
+    -fx-border-color: #111214;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.58), 28, 0.18, 0, 8);
+}
+
+.app-window.maximized {
+    -fx-padding: 0;
+}
+
+.maximized .window-frame {
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-border-width: 0;
+    -fx-effect: none;
+}
+
+.window-content-host {
+    -fx-background-color: #1E1F22;
+    -fx-background-radius: 0 0 12 12;
+}
+
+.maximized .window-content-host {
+    -fx-background-radius: 0;
+}
+
+.custom-title-bar {
+    -fx-min-height: 38;
+    -fx-pref-height: 38;
+    -fx-max-height: 38;
+    -fx-background-color: #111214;
+    -fx-background-radius: 12 12 0 0;
+    -fx-padding: 0 0 0 10;
+    -fx-spacing: 8;
+}
+
+.maximized .custom-title-bar {
+    -fx-background-radius: 0;
+}
+
+.application-icon {
+    -fx-opacity: 1;
+}
+
+.window-title {
+    -fx-text-fill: #DBDEE1;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.window-button {
+    -fx-min-width: 46;
+    -fx-pref-width: 46;
+    -fx-max-width: 46;
+    -fx-min-height: 38;
+    -fx-pref-height: 38;
+    -fx-max-height: 38;
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-text-fill: #B5BAC1;
+    -fx-font-size: 17px;
+    -fx-cursor: hand;
+}
+
+.window-button .label {
+    -fx-text-fill: #B5BAC1;
+    -fx-font-size: 15px;
+}
+
+.window-button:hover {
+    -fx-background-color: #2B2D31;
+}
+
+.window-button:hover .label {
+    -fx-text-fill: white;
+}
+
+.close-window-button {
+    -fx-background-radius: 0 12 0 0;
+}
+
+.maximized .close-window-button {
+    -fx-background-radius: 0;
+}
+
+.close-window-button:hover {
+    -fx-background-color: #DA373C;
+    -fx-text-fill: white;
+}
+
+.close-window-button:hover .label {
+    -fx-text-fill: white;
+}
+
+.window-overlay-host {
+    -fx-background-color: transparent;
+}

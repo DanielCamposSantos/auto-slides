@@ -8,13 +8,17 @@ import io.github.danielcampossantos.service.SelectionConfigService;
 import io.github.danielcampossantos.service.Workspace;
 import io.github.danielcampossantos.ui.navigation.SceneManager;
 import io.github.danielcampossantos.ui.navigation.SceneType;
+import io.github.danielcampossantos.ui.popup.PopupService;
 import io.github.danielcampossantos.ui.tree.NodeType;
 import io.github.danielcampossantos.ui.tree.SelectionTreeNode;
 import io.github.danielcampossantos.ui.view.PdfPageView;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
@@ -520,32 +524,26 @@ public final class AreaSelectionController {
 
     @FXML
     private void onFinish() {
-
         stopAutoScroll();
 
         List<SelectionArea> selections = getSelectionsFromTree();
 
         if (selections.isEmpty()) {
-
-            showAlert(
-                    Alert.AlertType.WARNING,
+            PopupService.getInstance().warning(
                     "Nenhuma área selecionada",
                     "Crie pelo menos uma seleção antes de finalizar."
             );
 
             return;
-
         }
 
         try {
-
             Path configPath = selectionConfigService.write(workspace, selections);
             List<Path> generatedFiles = imageService.crop(workspace.getTemporaryDirectory(), configPath);
 
-            showAlert(
-                    Alert.AlertType.INFORMATION,
+            PopupService.getInstance().success(
                     "Processamento concluído",
-                    "%d recortes foram criados%n%nConfiguração:%n%s%n%nRecortes:%n%s"
+                    "%d recortes foram criados.%n%nConfiguração:%n%s%n%nRecortes:%n%s"
                             .formatted(
                                     generatedFiles.size(),
                                     configPath,
@@ -555,30 +553,16 @@ public final class AreaSelectionController {
 
             log.info("Processamento concluído. Configuração: {}", configPath);
             log.info("Recortes criados: {}", generatedFiles.size());
-
         } catch (IOException | IllegalArgumentException exception) {
-
             log.error("Erro ao gerar a configuração ou recortar as imagens.", exception);
 
-            showAlert(
-                    Alert.AlertType.ERROR,
+            PopupService.getInstance().error(
                     "Erro no processamento",
-                    exception.getMessage()
+                    exception.getMessage() == null
+                            ? "Ocorreu um erro inesperado durante o processamento."
+                            : exception.getMessage()
             );
-
         }
-
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String message) {
-
-        Alert alert = new Alert(type);
-
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
-
     }
 
 }

@@ -1,0 +1,87 @@
+.popup-overlay {
+    -fx-alignment: center;
+}
+
+.popup-shield {
+    -fx-background-color: rgba(0, 0, 0, 0.68);
+}
+
+.popup-card {
+    -fx-min-width: 390;
+    -fx-pref-width: 470;
+    -fx-max-width: 520;
+    -fx-background-color: #2B2D31;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #3F4147;
+    -fx-border-width: 1;
+    -fx-padding: 28 30 26 30;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 32, 0.2, 0, 12);
+}
+
+.popup-icon {
+    -fx-min-width: 52;
+    -fx-pref-width: 52;
+    -fx-max-width: 52;
+    -fx-min-height: 52;
+    -fx-pref-height: 52;
+    -fx-max-height: 52;
+    -fx-alignment: center;
+    -fx-background-radius: 100;
+    -fx-font-size: 27px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.popup-information .popup-icon {
+    -fx-background-color: #5865F2;
+}
+
+.popup-success .popup-icon {
+    -fx-background-color: #23A55A;
+}
+
+.popup-warning .popup-icon {
+    -fx-background-color: #F0B232;
+    -fx-text-fill: #1E1F22;
+}
+
+.popup-error .popup-icon {
+    -fx-background-color: #DA373C;
+}
+
+.popup-title {
+    -fx-text-fill: #F2F3F5;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+}
+
+.popup-message {
+    -fx-text-fill: #B5BAC1;
+    -fx-font-size: 14px;
+    -fx-line-spacing: 3px;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+}
+
+.popup-confirm-button {
+    -fx-min-width: 140;
+    -fx-pref-height: 38;
+    -fx-background-color: #5865F2;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 8 20 8 20;
+}
+
+.popup-confirm-button:hover {
+    -fx-background-color: #4752C4;
+}
+
+.popup-confirm-button:pressed {
+    -fx-background-color: #3C45A5;
+}
