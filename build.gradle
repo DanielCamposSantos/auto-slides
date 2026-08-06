@@ -1,0 +1,66 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+group = 'io.github.danielcampossantos'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+dependencies {
+    compileOnly("org.projectlombok:lombok:1.18.46")
+    annotationProcessor("org.projectlombok:lombok:1.18.46")
+
+    testCompileOnly("org.projectlombok:lombok:1.18.46")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.46")
+    // JSON
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
+
+    // PDF
+    implementation 'org.apache.pdfbox:pdfbox:3.0.8'
+
+    // PowerPoint
+    implementation 'org.apache.poi:poi-ooxml:5.5.1'
+
+    // Logging
+    implementation 'org.apache.logging.log4j:log4j-api:2.26.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.26.1'
+
+    // Utilidades
+    implementation 'commons-io:commons-io:2.20.0'
+
+
+    //icons
+    implementation "org.kordamp.ikonli:ikonli-javafx:12.4.0"
+    implementation "org.kordamp.ikonli:ikonli-materialdesign2-pack:12.4.0"
+
+    // Testes
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
+
+}
+
+javafx {
+    version = '25'
+    modules = [
+            'javafx.controls',
+            'javafx.fxml'
+    ]
+}
+
+application {
+    mainClass = 'io.github.danielcampossantos.app.Main'
+}
+
+test {
+    useJUnitPlatform()
+}
