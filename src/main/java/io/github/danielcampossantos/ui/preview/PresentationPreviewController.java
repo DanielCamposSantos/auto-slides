@@ -5,6 +5,7 @@ import io.github.danielcampossantos.domain.template.PresentationSlideItem;
 import io.github.danielcampossantos.infrastructure.template.PresentationTemplateService;
 import io.github.danielcampossantos.infrastructure.template.TemplatePreferencesService;
 import io.github.danielcampossantos.ui.common.popup.PopupService;
+import io.github.danielcampossantos.ui.common.popup.PopupType;
 import io.github.danielcampossantos.ui.navigation.SceneManager;
 import io.github.danielcampossantos.ui.navigation.SceneType;
 import javafx.fxml.FXML;
@@ -18,7 +19,13 @@ import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Log4j2
 public final class PresentationPreviewController {
@@ -92,7 +99,7 @@ public final class PresentationPreviewController {
 
         if (template.isEmpty()) {
             PopupService.getInstance().show(
-                    io.github.danielcampossantos.ui.common.popup.PopupType.WARNING,
+                    PopupType.WARNING,
                     "Template não configurado",
                     "Selecione um template nas configurações antes de abrir esta tela.",
                     () -> SceneManager.getInstance().show(SceneType.SETTINGS)
@@ -110,14 +117,31 @@ public final class PresentationPreviewController {
     }
 
     private void loadTemplateSlides() {
+        var workspace = ApplicationService.getInstance().getWorkspace();
+
+        if (workspace == null || workspace.getTemporaryDirectory() == null) {
+            PopupService.getInstance().error(
+                    "Workspace indisponível",
+                    "Não foi possível localizar a pasta temporária da execução."
+            );
+
+            return;
+        }
+
         try {
             slides.clear();
-            slides.addAll(presentationTemplateService.readSlides(selectedTemplate));
+
+            slides.addAll(
+                    presentationTemplateService.readSlides(
+                            selectedTemplate,
+                            workspace.getTemporaryDirectory()
+                    )
+            );
         } catch (IOException exception) {
             log.error("Não foi possível carregar os slides do template.", exception);
 
             PopupService.getInstance().show(
-                    io.github.danielcampossantos.ui.common.popup.PopupType.ERROR,
+                    PopupType.ERROR,
                     "Erro ao carregar template",
                     exception.getMessage(),
                     () -> SceneManager.getInstance().show(SceneType.SETTINGS)
@@ -132,12 +156,38 @@ public final class PresentationPreviewController {
         for (PresentationSlideItem slide : slides) {
             PresentationSlideCard card = new PresentationSlideCard(
                     slide,
-                    this::removeSlide
+                    this::removeSlide,
+                    this::duplicateSlide
             );
 
             slideCards.put(slide, card);
             slidesContainer.getChildren().add(card);
         }
+    }
+
+    private void duplicateSlide(PresentationSlideItem source) {
+        int sourceIndex = slides.indexOf(source);
+
+        if (sourceIndex < 0) {
+            return;
+        }
+
+        PresentationSlideItem copy = presentationTemplateService.duplicate(
+                source,
+                sourceIndex + 2
+        );
+
+        slides.add(sourceIndex + 1, copy);
+
+        renumberSlides();
+
+        renderSlides();
+        updateView();
+
+        log.info(
+                "Slide {} duplicado visualmente.",
+                source.slideNumber()
+        );
     }
 
     private void removeSlide(PresentationSlideItem slide) {
@@ -154,6 +204,8 @@ public final class PresentationPreviewController {
 
         removalHistory.push(new RemovedSlide(slide, index));
 
+        renumberSlides();
+        renderSlides();
         updateView();
 
         log.info("Slide {} removido visualmente.", slide.slideNumber());
@@ -181,20 +233,37 @@ public final class PresentationPreviewController {
 
         slides.add(insertionIndex, removedSlide.slide());
 
-        PresentationSlideCard card = new PresentationSlideCard(
-                removedSlide.slide(),
-                this::removeSlide
-        );
-
-        slideCards.put(removedSlide.slide(), card);
-        slidesContainer.getChildren().add(insertionIndex, card);
-
+        renumberSlides();
+        renderSlides();
         updateView();
 
         log.info(
                 "Remoção do slide {} desfeita.",
-                removedSlide.slide().slideNumber()
+                removedSlide.slide().sourceSlideNumber()
         );
+    }
+
+    private void renumberSlides() {
+        List<PresentationSlideItem> renumbered = new ArrayList<>();
+
+        for (int index = 0; index < slides.size(); index++) {
+            PresentationSlideItem slide = slides.get(index);
+
+            renumbered.add(
+                    new PresentationSlideItem(
+                            slide.id(),
+                            index + 1,
+                            slide.sourceSlideNumber(),
+                            slide.copyNumber(),
+                            slide.title(),
+                            slide.description(),
+                            slide.thumbnailPath()
+                    )
+            );
+        }
+
+        slides.clear();
+        slides.addAll(renumbered);
     }
 
     private void updateView() {
@@ -259,8 +328,8 @@ public final class PresentationPreviewController {
     @FXML
     private void onFinish() {
         PopupService.getInstance().information(
-                "Montagem da apresentação",
-                "A integração definitiva com o PowerPoint será implementada na próxima etapa."
+                "Download da apresentação",
+                "O botão já representa o fluxo final. A criação do PPTX com Apache POI será conectada na próxima etapa."
         );
     }
 

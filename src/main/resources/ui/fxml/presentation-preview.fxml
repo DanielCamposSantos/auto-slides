@@ -45,7 +45,7 @@
 
                     <Button
                             fx:id="finishButton"
-                            text="Gerar apresentação"
+                            text="Baixar apresentação"
                             styleClass="primary-button"
                             onAction="#onFinish"/>
                 </HBox>

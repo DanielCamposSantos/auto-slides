@@ -5,6 +5,7 @@ import io.github.danielcampossantos.domain.template.SlotFitMode;
 public record SelectionDestination(
         String slideId,
         int slideNumber,
+        int slideCopyNumber,
         String slideTitle,
         String slotId,
         String slotLabel,

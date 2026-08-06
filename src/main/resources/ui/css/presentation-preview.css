@@ -299,3 +299,28 @@
 .secondary-button:hover {
     -fx-background-color: #6D6F78;
 }
+
+.slide-duplicate-button {
+    -fx-min-width: 42;
+    -fx-pref-width: 42;
+    -fx-max-width: 42;
+    -fx-min-height: 42;
+    -fx-pref-height: 42;
+    -fx-max-height: 42;
+    -fx-background-color: #3F4147;
+    -fx-background-radius: 8;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
+
+.slide-duplicate-button .ikonli-font-icon {
+    -fx-icon-color: #DBDEE1;
+}
+
+.slide-duplicate-button:hover {
+    -fx-background-color: #5865F2;
+}
+
+.slide-duplicate-button:hover .ikonli-font-icon {
+    -fx-icon-color: white;
+}

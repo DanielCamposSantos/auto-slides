@@ -6,9 +6,15 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import lombok.Getter;
 import org.kordamp.ikonli.javafx.FontIcon;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignC;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignD;
 
 import java.util.function.Consumer;
@@ -20,9 +26,16 @@ public final class PresentationSlideCard extends HBox {
 
     private final Consumer<PresentationSlideItem> removeAction;
 
-    public PresentationSlideCard(PresentationSlideItem item, Consumer<PresentationSlideItem> removeAction) {
+    private final Consumer<PresentationSlideItem> duplicateAction;
+
+    public PresentationSlideCard(
+            PresentationSlideItem item,
+            Consumer<PresentationSlideItem> removeAction,
+            Consumer<PresentationSlideItem> duplicateAction
+    ) {
         this.item = item;
         this.removeAction = removeAction;
+        this.duplicateAction = duplicateAction;
 
         initialize();
     }
@@ -35,11 +48,11 @@ public final class PresentationSlideCard extends HBox {
 
         StackPane slidePreview = createSlidePreview();
         VBox information = createInformation();
-        Button removeButton = createRemoveButton();
+        VBox actions = createActions();
 
         HBox.setHgrow(information, Priority.ALWAYS);
 
-        getChildren().addAll(slidePreview, information, removeButton);
+        getChildren().addAll(slidePreview, information, actions);
     }
 
     private StackPane createSlidePreview() {
@@ -49,40 +62,32 @@ public final class PresentationSlideCard extends HBox {
         preview.setMaxSize(420, 236);
         preview.getStyleClass().add("slide-preview");
 
-        VBox content = new VBox(14);
-        content.setAlignment(Pos.CENTER);
-        content.setPadding(new Insets(26));
-        content.getStyleClass().add("slide-preview-content");
+        if (item.thumbnailPath() != null) {
+            Image image = new Image(
+                    item.thumbnailPath().toUri().toString(),
+                    420,
+                    236,
+                    true,
+                    true
+            );
 
-        Label slideTitle = new Label(item.title());
-        slideTitle.setWrapText(true);
-        slideTitle.getStyleClass().add("slide-preview-title");
+            ImageView imageView = new ImageView(image);
 
-        Label slideDescription = new Label(item.description());
-        slideDescription.setWrapText(true);
-        slideDescription.getStyleClass().add("slide-preview-description");
+            imageView.setFitWidth(420);
+            imageView.setFitHeight(236);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
 
-        HBox imagePlaceholders = new HBox(12);
-        imagePlaceholders.setAlignment(Pos.CENTER);
-
-        Region firstImage = new Region();
-        firstImage.getStyleClass().add("slide-image-placeholder");
-
-        Region secondImage = new Region();
-        secondImage.getStyleClass().add("slide-image-placeholder");
-
-        HBox.setHgrow(firstImage, Priority.ALWAYS);
-        HBox.setHgrow(secondImage, Priority.ALWAYS);
-
-        imagePlaceholders.getChildren().addAll(firstImage, secondImage);
+            preview.getChildren().add(imageView);
+        }
 
         Label numberBadge = new Label(String.valueOf(item.slideNumber()));
         numberBadge.getStyleClass().add("slide-number-badge");
+
         StackPane.setAlignment(numberBadge, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(numberBadge, new Insets(0, 10, 10, 0));
 
-        content.getChildren().addAll(slideTitle, slideDescription, imagePlaceholders);
-        preview.getChildren().addAll(content, numberBadge);
+        preview.getChildren().add(numberBadge);
 
         return preview;
     }
@@ -91,19 +96,49 @@ public final class PresentationSlideCard extends HBox {
         VBox information = new VBox(8);
         information.setAlignment(Pos.CENTER_LEFT);
 
-        Label title = new Label("Slide " + item.slideNumber());
+        Label title = new Label(item.title());
         title.getStyleClass().add("slide-card-title");
 
         Label description = new Label(item.description());
         description.setWrapText(true);
         description.getStyleClass().add("slide-card-description");
 
-        Label status = new Label("Incluído na apresentação final");
+        String statusText = item.copyNumber() == 1
+                ? "Slide original do template"
+                : "Cópia do slide " + item.sourceSlideNumber();
+
+        Label status = new Label(statusText);
         status.getStyleClass().add("slide-card-status");
 
         information.getChildren().addAll(title, description, status);
 
         return information;
+    }
+
+    private VBox createActions() {
+        VBox actions = new VBox(10);
+        actions.setAlignment(Pos.CENTER);
+
+        Button duplicateButton = createDuplicateButton();
+        Button removeButton = createRemoveButton();
+
+        actions.getChildren().addAll(duplicateButton, removeButton);
+
+        return actions;
+    }
+
+    private Button createDuplicateButton() {
+        FontIcon icon = new FontIcon(MaterialDesignC.CONTENT_COPY);
+        icon.setIconSize(20);
+
+        Button button = new Button();
+        button.setGraphic(icon);
+        button.setCursor(Cursor.HAND);
+        button.setFocusTraversable(false);
+        button.getStyleClass().add("slide-duplicate-button");
+        button.setOnAction(event -> duplicateAction.accept(item));
+
+        return button;
     }
 
     private Button createRemoveButton() {

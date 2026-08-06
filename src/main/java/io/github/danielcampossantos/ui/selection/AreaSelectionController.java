@@ -359,14 +359,30 @@ public final class AreaSelectionController {
     }
 
     private void confirmSelection(SelectionArea area, SelectionDestination destination) {
-        SelectionAssignment assignment = new SelectionAssignment(area, destination);
+        try {
+            SelectionDestination resolvedDestination = templateLayoutService.resolveDestination(
+                    destination,
+                    List.copyOf(assignments.values())
+            );
 
-        assignments.put(assignment.id(), assignment);
+            SelectionAssignment assignment = new SelectionAssignment(area, resolvedDestination);
 
-        addAssignmentToTree(assignment);
+            assignments.put(assignment.id(), assignment);
 
-        selectionCount++;
-        updateSelectionCounter();
+            addAssignmentToTree(assignment);
+
+            selectionCount++;
+            updateSelectionCounter();
+        } catch (IOException exception) {
+            log.error("Não foi possível resolver o destino da seleção.", exception);
+
+            PopupService.getInstance().error(
+                    "Destino inválido",
+                    exception.getMessage() == null
+                            ? "Não foi possível associar a seleção ao template."
+                            : exception.getMessage()
+            );
+        }
     }
 
     private void addAssignmentToTree(SelectionAssignment assignment) {
@@ -398,9 +414,14 @@ public final class AreaSelectionController {
 
         SelectionDestination destination = assignment.destination();
 
-        String nodeText = "Seleção %d → Slide %d / %s".formatted(
+        String copySuffix = destination.slideCopyNumber() > 1
+                ? " cópia " + destination.slideCopyNumber()
+                : "";
+
+        String nodeText = "Seleção %d → Slide %d%s / %s".formatted(
                 nextSelectionNumber++,
                 destination.slideNumber(),
+                copySuffix,
                 destination.slotLabel()
         );
 
