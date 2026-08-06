@@ -1,0 +1,263 @@
+.root {
+
+    -fx-background-color: #313338;
+
+    -fx-font-family: "Segoe UI";
+
+}
+
+/* ------------------------------------------------ */
+/* Cabeçalho */
+/* ------------------------------------------------ */
+
+.title {
+
+    -fx-text-fill: white;
+
+    -fx-font-size: 34px;
+
+    -fx-font-weight: bold;
+
+}
+
+.subtitle {
+
+    -fx-text-fill: #B5BAC1;
+
+    -fx-font-size: 15px;
+
+}
+
+/* ------------------------------------------------ */
+/* Área Central */
+/* ------------------------------------------------ */
+
+.viewer-container {
+
+    -fx-background-color: #2B2D31;
+
+    -fx-background-radius: 18;
+
+    -fx-border-radius: 18;
+
+    -fx-border-color: #404249;
+
+    -fx-border-width: 1;
+
+    -fx-padding: 18;
+
+}
+
+.viewer-scroll {
+
+    -fx-background-color: transparent;
+
+    -fx-background-insets: 0;
+
+}
+
+.viewer-scroll > .viewport {
+
+    -fx-background-color: transparent;
+
+}
+
+.viewer-scroll .corner {
+
+    -fx-background-color: transparent;
+
+}
+
+/* ------------------------------------------------ */
+/* Sidebar */
+/* ------------------------------------------------ */
+
+.sidebar {
+
+    -fx-background-color: #2B2D31;
+
+    -fx-background-radius: 18;
+
+    -fx-padding: 20;
+
+}
+
+.sidebar-title {
+
+    -fx-text-fill: white;
+
+    -fx-font-size: 20px;
+
+    -fx-font-weight: bold;
+
+}
+
+.selection-counter {
+
+    -fx-text-fill: #B5BAC1;
+
+    -fx-font-size: 14px;
+
+}
+
+/* ------------------------------------------------ */
+/* Árvore de Seleções */
+/* ------------------------------------------------ */
+
+.tree-view {
+
+    -fx-background-color: #1E1F22;
+
+    -fx-background-radius: 12;
+
+    -fx-border-radius: 12;
+
+    -fx-border-color: #404249;
+
+    -fx-padding: 8;
+
+}
+
+.tree-view .viewport {
+
+    -fx-background-color: transparent;
+
+}
+
+.tree-cell {
+
+    -fx-background-color: transparent;
+
+    -fx-text-fill: white;
+
+    -fx-padding: 6 4;
+
+}
+
+.tree-cell:selected {
+
+    -fx-background-color: rgba(88,101,242,0.25);
+
+    -fx-background-radius: 8;
+
+}
+
+.tree-cell:hover {
+
+    -fx-background-color: rgba(255,255,255,0.05);
+
+    -fx-background-radius: 8;
+
+}
+
+.tree-disclosure-node .arrow {
+
+    -fx-background-color: #B5BAC1;
+
+}
+
+/* ------------------------------------------------ */
+/* Scroll */
+/* ------------------------------------------------ */
+
+.scroll-bar:vertical {
+
+    -fx-background-color: transparent;
+
+}
+
+.scroll-bar .thumb {
+
+    -fx-background-color: #5865F2;
+
+    -fx-background-radius: 20;
+
+}
+
+.scroll-bar .track {
+
+    -fx-background-color: transparent;
+
+}
+
+/* ------------------------------------------------ */
+/* Botões */
+/* ------------------------------------------------ */
+
+.button {
+
+    -fx-font-size: 14px;
+
+    -fx-font-weight: bold;
+
+    -fx-padding: 10 24;
+
+    -fx-background-radius: 10;
+
+    -fx-border-radius: 10;
+
+    -fx-cursor: hand;
+
+}
+
+.primary-button {
+
+    -fx-background-color: #5865F2;
+
+    -fx-text-fill: white;
+
+}
+
+.primary-button:hover {
+
+    -fx-background-color: #4752C4;
+
+}
+
+.primary-button:pressed {
+
+    -fx-background-color: #3945B5;
+
+}
+
+.secondary-button {
+
+    -fx-background-color: transparent;
+
+    -fx-text-fill: #5865F2;
+
+    -fx-border-color: #5865F2;
+
+    -fx-border-width: 1.5;
+
+}
+
+.secondary-button:hover {
+
+    -fx-background-color: #5865F2;
+
+    -fx-text-fill: white;
+
+}
+
+.secondary-button:pressed {
+
+    -fx-background-color: #4752C4;
+
+}
+
+.pdf-page {
+
+    -fx-background-color: #2B2D31;
+
+    -fx-background-radius: 12;
+
+    -fx-border-radius: 12;
+
+    -fx-border-color: #404249;
+
+    -fx-border-width: 1;
+
+    -fx-padding: 18;
+
+}
