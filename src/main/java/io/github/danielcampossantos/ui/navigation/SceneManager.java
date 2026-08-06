@@ -1,6 +1,6 @@
 package io.github.danielcampossantos.ui.navigation;
 
-import io.github.danielcampossantos.ui.window.AppWindow;
+import io.github.danielcampossantos.ui.common.window.AppWindow;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -21,8 +21,6 @@ public final class SceneManager {
 
     private Stage stage;
 
-    private Scene scene;
-
     @Getter
     private AppWindow window;
 
@@ -41,7 +39,7 @@ public final class SceneManager {
         this.stage = stage;
 
         window = new AppWindow(stage);
-        scene = new Scene(window);
+        Scene scene = new Scene(window);
 
         scene.setFill(Color.TRANSPARENT);
 

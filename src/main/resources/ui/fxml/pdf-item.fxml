@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.net.URL?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
-
+<?import java.net.URL?>
 <HBox
         xmlns="http://javafx.com/javafx/25"
         xmlns:fx="http://javafx.com/fxml/1"
-        fx:controller="io.github.danielcampossantos.ui.controller.PdfItemController"
+        fx:controller="io.github.danielcampossantos.ui.home.PdfItemController"
         alignment="CENTER_LEFT"
         spacing="16"
         styleClass="pdf-item">

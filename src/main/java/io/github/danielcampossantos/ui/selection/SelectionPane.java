@@ -1,7 +1,7 @@
 package io.github.danielcampossantos.ui.selection;
 
-import io.github.danielcampossantos.model.PdfPage;
-import io.github.danielcampossantos.model.SelectionArea;
+import io.github.danielcampossantos.domain.pdf.PdfPage;
+import io.github.danielcampossantos.domain.selection.SelectionArea;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.input.MouseButton;

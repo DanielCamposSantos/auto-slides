@@ -58,7 +58,7 @@ javafx {
 }
 
 application {
-    mainClass = 'io.github.danielcampossantos.app.Main'
+    mainClass = 'io.github.danielcampossantos.application.Main'
 }
 
 test {
