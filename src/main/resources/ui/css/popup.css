@@ -85,3 +85,67 @@
 .popup-confirm-button:pressed {
     -fx-background-color: #3C45A5;
 }
+
+.destination-popup-card {
+    -fx-min-width: 440;
+    -fx-pref-width: 500;
+    -fx-max-width: 540;
+    -fx-background-color: #2B2D31;
+    -fx-background-radius: 14;
+    -fx-border-color: #3F4147;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 32, 0.2, 0, 12);
+}
+
+.destination-field-label {
+    -fx-text-fill: #DBDEE1;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.destination-combo-box {
+    -fx-pref-height: 40;
+    -fx-background-color: #1E1F22;
+    -fx-background-radius: 6;
+    -fx-border-color: #4E5058;
+    -fx-border-radius: 6;
+    -fx-text-fill: #F2F3F5;
+}
+
+.destination-combo-box .list-cell {
+    -fx-background-color: #1E1F22;
+    -fx-text-fill: #F2F3F5;
+}
+
+.destination-combo-box .list-view {
+    -fx-background-color: #1E1F22;
+    -fx-border-color: #4E5058;
+}
+
+.destination-combo-box .list-cell:hover {
+    -fx-background-color: #35373C;
+}
+
+.destination-combo-box .list-cell:selected {
+    -fx-background-color: #5865F2;
+}
+
+.destination-validation-label {
+    -fx-text-fill: #F0B232;
+    -fx-font-size: 12px;
+}
+
+.destination-cancel-button {
+    -fx-background-color: #4E5058;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 18 8 18;
+    -fx-cursor: hand;
+}
+
+.destination-cancel-button:hover {
+    -fx-background-color: #6D6F78;
+}

@@ -7,6 +7,7 @@ public record CropAreaConfig(
         int x,
         int y,
         int width,
-        int height
+        int height,
+        SelectionDestination destination
 ) {
 }

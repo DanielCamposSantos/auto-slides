@@ -2,7 +2,13 @@ package io.github.danielcampossantos.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import io.github.danielcampossantos.model.*;
+import io.github.danielcampossantos.model.CropAreaConfig;
+import io.github.danielcampossantos.model.PageCropConfig;
+import io.github.danielcampossantos.model.PdfCropConfig;
+import io.github.danielcampossantos.model.PdfPage;
+import io.github.danielcampossantos.model.SelectionArea;
+import io.github.danielcampossantos.model.SelectionAssignment;
+import io.github.danielcampossantos.model.SelectionConfig;
 import lombok.extern.log4j.Log4j2;
 
 import javax.imageio.ImageIO;
@@ -24,8 +30,11 @@ public final class SelectionConfigService {
     private final ObjectMapper objectMapper = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT);
 
-    public Path write(Workspace workspace, List<SelectionArea> selections) throws IOException {
-        SelectionConfig config = createConfig(workspace, selections);
+    public Path write(
+            Workspace workspace,
+            List<SelectionAssignment> assignments
+    ) throws IOException {
+        SelectionConfig config = createConfig(workspace, assignments);
         Path configPath = workspace.getTemporaryDirectory().resolve(CONFIG_FILE_NAME);
 
         objectMapper.writeValue(configPath.toFile(), config);
@@ -35,17 +44,20 @@ public final class SelectionConfigService {
         return configPath;
     }
 
-    private SelectionConfig createConfig(Workspace workspace, List<SelectionArea> selections) throws IOException {
-        Map<Integer, List<SelectionArea>> selectionsByPdf = selections.stream()
+    private SelectionConfig createConfig(
+            Workspace workspace,
+            List<SelectionAssignment> assignments
+    ) throws IOException {
+        Map<Integer, List<SelectionAssignment>> assignmentsByPdf = assignments.stream()
                 .collect(Collectors.groupingBy(
-                        area -> area.page().pdfNumber(),
+                        assignment -> assignment.page().pdfNumber(),
                         LinkedHashMap::new,
                         Collectors.toList()
                 ));
 
         List<PdfCropConfig> pdfConfigs = new ArrayList<>();
 
-        for (Map.Entry<Integer, List<SelectionArea>> pdfEntry : selectionsByPdf.entrySet()) {
+        for (Map.Entry<Integer, List<SelectionAssignment>> pdfEntry : assignmentsByPdf.entrySet()) {
             int pdfNumber = pdfEntry.getKey();
             String fileName = getPdfFileName(workspace, pdfNumber);
             List<PageCropConfig> pageConfigs = createPageConfigs(pdfEntry.getValue());
@@ -56,23 +68,25 @@ public final class SelectionConfigService {
         return new SelectionConfig(pdfConfigs);
     }
 
-    private List<PageCropConfig> createPageConfigs(List<SelectionArea> selections) throws IOException {
-        Map<PdfPage, List<SelectionArea>> selectionsByPage = selections.stream()
+    private List<PageCropConfig> createPageConfigs(
+            List<SelectionAssignment> assignments
+    ) throws IOException {
+        Map<PdfPage, List<SelectionAssignment>> assignmentsByPage = assignments.stream()
                 .collect(Collectors.groupingBy(
-                        SelectionArea::page,
+                        SelectionAssignment::page,
                         LinkedHashMap::new,
                         Collectors.toList()
                 ));
 
         List<PageCropConfig> pageConfigs = new ArrayList<>();
 
-        for (Map.Entry<PdfPage, List<SelectionArea>> pageEntry : selectionsByPage.entrySet()) {
+        for (Map.Entry<PdfPage, List<SelectionAssignment>> pageEntry : assignmentsByPage.entrySet()) {
             PdfPage page = pageEntry.getKey();
             BufferedImage sourceImage = readImage(page.imagePath());
 
             List<CropAreaConfig> cropAreas = pageEntry.getValue()
                     .stream()
-                    .map(area -> convertToSourcePixels(area, sourceImage))
+                    .map(assignment -> convertToSourcePixels(assignment, sourceImage))
                     .toList();
 
             pageConfigs.add(new PageCropConfig(
@@ -85,9 +99,16 @@ public final class SelectionConfigService {
         return pageConfigs;
     }
 
-    private CropAreaConfig convertToSourcePixels(SelectionArea area, BufferedImage sourceImage) {
+    private CropAreaConfig convertToSourcePixels(
+            SelectionAssignment assignment,
+            BufferedImage sourceImage
+    ) {
+        SelectionArea area = assignment.area();
+
         if (area.viewportWidth() <= 0 || area.viewportHeight() <= 0) {
-            throw new IllegalStateException("Dimensões da visualização inválidas para a seleção " + area.id());
+            throw new IllegalStateException(
+                    "Dimensões da visualização inválidas para a seleção " + area.id()
+            );
         }
 
         double scaleX = sourceImage.getWidth() / area.viewportWidth();
@@ -98,12 +119,19 @@ public final class SelectionConfigService {
         int width = (int) Math.round(area.width() * scaleX);
         int height = (int) Math.round(area.height() * scaleY);
 
-        x = Math.clamp(x, 0, sourceImage.getWidth() - 1);
-        y = Math.clamp(y, 0, sourceImage.getHeight() - 1);
-        width = Math.clamp(width, 1, sourceImage.getWidth() - x);
-        height = Math.clamp(height, 1, sourceImage.getHeight() - y);
+        x = Math.max(0, Math.min(x, sourceImage.getWidth() - 1));
+        y = Math.max(0, Math.min(y, sourceImage.getHeight() - 1));
+        width = Math.max(1, Math.min(width, sourceImage.getWidth() - x));
+        height = Math.max(1, Math.min(height, sourceImage.getHeight() - y));
 
-        return new CropAreaConfig(area.id(), x, y, width, height);
+        return new CropAreaConfig(
+                area.id(),
+                x,
+                y,
+                width,
+                height,
+                assignment.destination()
+        );
     }
 
     private BufferedImage readImage(Path imagePath) throws IOException {

@@ -46,11 +46,7 @@ public final class SelectionPane extends Pane {
     }
 
     private void handleMousePressed(MouseEvent event) {
-        if (event.getButton() != MouseButton.PRIMARY) {
-            return;
-        }
-
-        if (isSelectionTarget(event.getTarget())) {
+        if (event.getButton() != MouseButton.PRIMARY || isSelectionTarget(event.getTarget())) {
             return;
         }
 
@@ -109,6 +105,7 @@ public final class SelectionPane extends Pane {
         SelectionView selection = currentSelection;
 
         selection.setOnRemove(() -> removeSelection(area));
+
         selections.put(area, selection);
 
         if (onSelectionCreated != null) {
@@ -138,7 +135,7 @@ public final class SelectionPane extends Pane {
         return false;
     }
 
-    private void removeSelection(SelectionArea area) {
+    public void removeSelection(SelectionArea area) {
         SelectionView view = selections.remove(area);
 
         if (view == null) {

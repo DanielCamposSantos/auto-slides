@@ -32,6 +32,7 @@ public final class PdfPageView extends StackPane {
         this.page = page;
         imageView = new ImageView();
         selectionPane = new SelectionPane(page);
+
         initialize();
     }
 
@@ -61,7 +62,9 @@ public final class PdfPageView extends StackPane {
 
         getChildren().addAll(imageView, selectionPane);
 
-        imageView.layoutBoundsProperty().addListener((observable, oldBounds, newBounds) -> resizeSelectionPane());
+        imageView.layoutBoundsProperty().addListener(
+                (observable, oldBounds, newBounds) -> resizeSelectionPane()
+        );
 
         Platform.runLater(this::resizeSelectionPane);
     }
@@ -73,5 +76,9 @@ public final class PdfPageView extends StackPane {
         selectionPane.setPrefSize(width, height);
         selectionPane.setMinSize(width, height);
         selectionPane.setMaxSize(width, height);
+    }
+
+    public void removeSelection(SelectionArea area) {
+        selectionPane.removeSelection(area);
     }
 }
