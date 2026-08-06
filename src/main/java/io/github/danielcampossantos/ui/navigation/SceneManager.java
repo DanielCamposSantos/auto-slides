@@ -17,7 +17,7 @@ public final class SceneManager {
 
     private static SceneManager instance;
 
-    private final Map<SceneType, Parent> cache = new EnumMap<>(SceneType.class);
+    private final Map<SceneType, LoadedView> cache = new EnumMap<>(SceneType.class);
 
     private Stage stage;
 
@@ -61,20 +61,19 @@ public final class SceneManager {
     }
 
     public void show(SceneType sceneType) {
-        Parent root = shouldReload(sceneType)
+        LoadedView view = shouldReload(sceneType)
                 ? loadView(sceneType)
                 : cache.computeIfAbsent(sceneType, this::loadView);
 
-        window.setContent(root);
+        if (view.controller() instanceof Reloadable reloadable) {
+            reloadable.reload();
+        }
+
+        window.setContent(view.root());
         window.setTitle(sceneType.getTitle());
 
         stage.setTitle(sceneType.getTitle());
         stage.show();
-    }
-
-    private boolean shouldReload(SceneType sceneType) {
-        return sceneType == SceneType.AREA_SELECTION
-                || sceneType == SceneType.PRESENTATION_PREVIEW;
     }
 
     public void clear(SceneType sceneType) {
@@ -85,7 +84,12 @@ public final class SceneManager {
         cache.clear();
     }
 
-    private Parent loadView(SceneType sceneType) {
+    private boolean shouldReload(SceneType sceneType) {
+        return sceneType == SceneType.AREA_SELECTION
+                || sceneType == SceneType.PRESENTATION_PREVIEW;
+    }
+
+    private LoadedView loadView(SceneType sceneType) {
         FXMLLoader loader = new FXMLLoader(
                 Objects.requireNonNull(
                         SceneManager.class.getResource(sceneType.getFxml())
@@ -93,12 +97,20 @@ public final class SceneManager {
         );
 
         try {
-            return loader.load();
+            Parent root = loader.load();
+
+            return new LoadedView(root, loader.getController());
         } catch (IOException exception) {
             throw new IllegalStateException(
                     "Não foi possível carregar %s".formatted(sceneType.getFxml()),
                     exception
             );
         }
+    }
+
+    private record LoadedView(
+            Parent root,
+            Object controller
+    ) {
     }
 }

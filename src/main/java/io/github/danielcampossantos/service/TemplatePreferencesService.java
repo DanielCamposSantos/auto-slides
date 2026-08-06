@@ -1,7 +1,9 @@
 package io.github.danielcampossantos.service;
 
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.prefs.Preferences;
 
@@ -26,7 +28,14 @@ public final class TemplatePreferencesService {
     }
 
     public void saveTemplate(Path templatePath) {
-        preferences.put(TEMPLATE_PATH_KEY, templatePath.toAbsolutePath().toString());
+        if (templatePath == null) {
+            throw new IllegalArgumentException("O caminho do template não pode ser nulo.");
+        }
+
+        preferences.put(
+                TEMPLATE_PATH_KEY,
+                templatePath.toAbsolutePath().normalize().toString()
+        );
     }
 
     public Optional<Path> getTemplate() {
@@ -36,17 +45,33 @@ public final class TemplatePreferencesService {
             return Optional.empty();
         }
 
-        Path path = Path.of(savedPath);
+        try {
+            Path path = Path.of(savedPath);
 
-        if (!Files.isRegularFile(path)) {
-            preferences.remove(TEMPLATE_PATH_KEY);
+            if (!Files.isRegularFile(path) || !isPptx(path)) {
+                clearTemplate();
+                return Optional.empty();
+            }
+
+            return Optional.of(path);
+        } catch (InvalidPathException exception) {
+            clearTemplate();
             return Optional.empty();
         }
+    }
 
-        return Optional.of(path);
+    public boolean hasTemplate() {
+        return getTemplate().isPresent();
     }
 
     public void clearTemplate() {
         preferences.remove(TEMPLATE_PATH_KEY);
+    }
+
+    private boolean isPptx(Path path) {
+        return path.getFileName()
+                .toString()
+                .toLowerCase(Locale.ROOT)
+                .endsWith(".pptx");
     }
 }

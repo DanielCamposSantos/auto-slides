@@ -7,139 +7,137 @@
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane
         xmlns="http://javafx.com/javafx/25"
         xmlns:fx="http://javafx.com/fxml/1"
-        fx:controller="io.github.danielcampossantos.ui.controller.HomeController">
+        fx:controller="io.github.danielcampossantos.ui.controller.HomeController"
+        styleClass="home-root">
 
     <stylesheets>
         <URL value="@../css/home.css"/>
     </stylesheets>
 
-    <padding>
-        <Insets top="32"
-                right="32"
-                bottom="24"
-                left="32"/>
-    </padding>
-
-    <top>
-
+    <left>
         <VBox
-                alignment="CENTER"
-                spacing="14">
+                alignment="TOP_CENTER"
+                prefWidth="78"
+                minWidth="78"
+                maxWidth="78"
+                styleClass="home-sidebar">
 
             <padding>
-
-                <Insets
-                        top="20"
-                        bottom="20"/>
-
+                <Insets top="18" right="10" bottom="14" left="10"/>
             </padding>
 
             <Label
-                    text="Auto Slides"
-                    styleClass="title"/>
+                    text="A"
+                    styleClass="home-logo"/>
 
-            <Label
-                    maxWidth="900"
-                    wrapText="true"
-                    textAlignment="CENTER"
-                    text="Automatize completamente a geração de apresentações PowerPoint a partir de arquivos PDF padronizados."
-                    styleClass="subtitle"/>
+            <Region VBox.vgrow="ALWAYS"/>
 
+            <Button
+                    fx:id="settingsButton"
+                    onAction="#onOpenSettings"
+                    styleClass="settings-button"/>
         </VBox>
-
-    </top>
+    </left>
 
     <center>
+        <VBox spacing="20">
 
-        <VBox
-                alignment="TOP_CENTER"
-                spacing="36">
+            <padding>
+                <Insets top="28" right="32" bottom="28" left="32"/>
+            </padding>
 
-            <VBox
+            <VBox spacing="6">
+                <Label
+                        text="Importar documentos"
+                        styleClass="home-title"/>
+
+                <Label
+                        text="Adicione os arquivos PDF que serão utilizados para montar a apresentação."
+                        styleClass="home-subtitle"/>
+            </VBox>
+
+            <HBox
+                    alignment="CENTER_LEFT"
+                    spacing="12"
+                    styleClass="template-status-panel">
+
+                <Label
+                        fx:id="templateStatusLabel"
+                        text="Configure um template para continuar"
+                        styleClass="template-status-label"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button
+                        text="Abrir configurações"
+                        onAction="#onOpenSettings"
+                        styleClass="template-settings-link"/>
+            </HBox>
+
+            <StackPane
                     fx:id="dropArea"
-                    alignment="CENTER"
-                    spacing="18"
+                    VBox.vgrow="ALWAYS"
                     styleClass="drop-area"
-                    onMouseClicked="#onSelectPdf"
                     onDragEntered="#onDragEntered"
                     onDragExited="#onDragExited"
                     onDragOver="#onDragOver"
                     onDragDropped="#onDragDropped">
 
-                <Label
-                        text="upload_file"
-                        styleClass="material-icon upload-icon"/>
-
-                <Label
-                        text="Adicionar arquivos PDF"
-                        styleClass="drop-title"/>
-
-                <Label
-                        text="Clique ou arraste um ou mais arquivos PDF para esta área."
-                        styleClass="drop-description"/>
-
-                <Button
-                        text="Selecionar Arquivos"
-                        styleClass="primary-button"
-                        onAction="#onSelectPdf"/>
-
-            </VBox>
-
-            <VBox
-                    spacing="12"
-                    styleClass="file-panel">
-
-                <HBox alignment="CENTER_LEFT">
+                <VBox
+                        alignment="CENTER"
+                        spacing="12">
 
                     <Label
-                            fx:id="pdfCounterLabel"
-                            text="Nenhum PDF selecionado"
-                            styleClass="pdf-counter"/>
+                            text="Adicionar arquivos PDF"
+                            styleClass="drop-title"/>
 
-                    <Region
-                            HBox.hgrow="ALWAYS"/>
+                    <Label
+                            text="Arraste os arquivos para esta área ou selecione manualmente."
+                            styleClass="drop-description"/>
 
                     <Button
-                            fx:id="clearSelectionButton"
-                            text="Limpar seleção"
-                            styleClass="secondary-button"
-                            onAction="#onClearSelection"/>
+                            text="Selecionar PDFs"
+                            onAction="#onSelectPdf"
+                            styleClass="select-pdf-button"/>
+                </VBox>
+            </StackPane>
 
-                </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="14">
 
-                <ListView
-                        fx:id="pdfListView"
-                        prefHeight="260"
-                        VBox.vgrow="ALWAYS"/>
+                <Label
+                        fx:id="pdfCounterLabel"
+                        text="Nenhum PDF selecionado"
+                        styleClass="pdf-counter"/>
 
-            </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button
+                        fx:id="clearSelectionButton"
+                        text="Limpar seleção"
+                        onAction="#onClearSelection"
+                        styleClass="secondary-button"/>
+
+                <Button
+                        fx:id="continueButton"
+                        text="Continuar"
+                        onAction="#onContinue"
+                        styleClass="primary-button"/>
+            </HBox>
+
+            <ListView
+                    fx:id="pdfListView"
+                    prefHeight="210"
+                    minHeight="140"
+                    styleClass="pdf-list"/>
 
         </VBox>
-
     </center>
-
-    <bottom>
-
-        <HBox alignment="CENTER_RIGHT">
-
-            <Region
-                    HBox.hgrow="ALWAYS"/>
-
-            <Button
-                    fx:id="continueButton"
-                    text="Continuar"
-                    styleClass="primary-button"
-                    onAction="#onContinue"/>
-
-        </HBox>
-
-    </bottom>
 
 </BorderPane>

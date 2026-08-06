@@ -12,6 +12,11 @@ public enum SceneType {
             "Auto Slides"
     ),
 
+    SETTINGS(
+            "/ui/fxml/settings.fxml",
+            "Configurações"
+    ),
+
     AREA_SELECTION(
             "/ui/fxml/area-selection.fxml",
             "Seleção de Áreas"

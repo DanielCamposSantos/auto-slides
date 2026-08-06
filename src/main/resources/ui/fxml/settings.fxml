@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane
+        fx:id="rootPane"
+        xmlns="http://javafx.com/javafx/25"
+        xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="io.github.danielcampossantos.ui.controller.SettingsController"
+        styleClass="settings-root">
+
+    <stylesheets>
+        <URL value="@../css/settings.css"/>
+    </stylesheets>
+
+    <BorderPane>
+
+        <padding>
+            <Insets top="28" right="34" bottom="28" left="34"/>
+        </padding>
+
+        <top>
+            <HBox alignment="CENTER_LEFT" spacing="16">
+
+                <VBox spacing="6">
+                    <Label
+                            text="Configurações"
+                            styleClass="settings-title"/>
+
+                    <Label
+                            text="Defina o template PowerPoint utilizado na montagem das apresentações."
+                            styleClass="settings-subtitle"/>
+                </VBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button
+                        text="Voltar"
+                        onAction="#onBack"
+                        styleClass="settings-back-button"/>
+            </HBox>
+        </top>
+
+        <center>
+            <VBox
+                    alignment="TOP_CENTER"
+                    spacing="20">
+
+                <padding>
+                    <Insets top="42" right="0" bottom="0" left="0"/>
+                </padding>
+
+                <VBox
+                        maxWidth="760"
+                        spacing="22"
+                        styleClass="template-settings-card">
+
+                    <HBox alignment="CENTER_LEFT" spacing="18">
+
+                        <StackPane styleClass="template-large-icon-container">
+                            <FontIcon
+                                    fx:id="templateIcon"
+                                    iconSize="34"/>
+                        </StackPane>
+
+                        <VBox spacing="5" HBox.hgrow="ALWAYS">
+
+                            <Label
+                                    text="Template da apresentação"
+                                    styleClass="template-settings-label"/>
+
+                            <Label
+                                    fx:id="templateNameLabel"
+                                    text="Nenhum template configurado"
+                                    styleClass="template-settings-name"/>
+
+                            <Label
+                                    fx:id="templatePathLabel"
+                                    text="Selecione um arquivo .pptx para liberar o fluxo de criação."
+                                    wrapText="true"
+                                    styleClass="template-settings-path"/>
+                        </VBox>
+
+                    </HBox>
+
+                    <HBox spacing="16">
+
+                        <VBox
+                                HBox.hgrow="ALWAYS"
+                                spacing="5"
+                                styleClass="template-information-box">
+
+                            <Label
+                                    text="Quantidade de slides"
+                                    styleClass="information-label"/>
+
+                            <Label
+                                    fx:id="slideCountLabel"
+                                    text="Nenhum slide"
+                                    styleClass="information-value"/>
+                        </VBox>
+
+                        <VBox
+                                HBox.hgrow="ALWAYS"
+                                spacing="5"
+                                styleClass="template-information-box">
+
+                            <Label
+                                    text="Tamanho da apresentação"
+                                    styleClass="information-label"/>
+
+                            <Label
+                                    fx:id="slideSizeLabel"
+                                    text="Dimensões indisponíveis"
+                                    styleClass="information-value"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox alignment="CENTER_RIGHT" spacing="12">
+
+                        <Button
+                                fx:id="removeTemplateButton"
+                                text="Remover template"
+                                onAction="#onRemoveTemplate"
+                                styleClass="remove-template-button"/>
+
+                        <Button
+                                fx:id="chooseTemplateButton"
+                                text="Selecionar template"
+                                onAction="#onChooseTemplate"
+                                styleClass="choose-template-button"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </center>
+
+    </BorderPane>
+
+</StackPane>

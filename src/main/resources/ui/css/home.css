@@ -1,281 +1,183 @@
-.root {
-
-    -fx-background-color: #313338;
-
-    -fx-font-family: "Segoe UI";
-
+.home-root {
+    -fx-background-color: #1E1F22;
 }
 
+.home-sidebar {
+    -fx-background-color: #111214;
+    -fx-border-color: transparent #2B2D31 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
 
-
-/* ------------------------------------------------ */
-/* Cabeçalho */
-/* ------------------------------------------------ */
-
-.title {
-
+.home-logo {
+    -fx-min-width: 44;
+    -fx-pref-width: 44;
+    -fx-max-width: 44;
+    -fx-min-height: 44;
+    -fx-pref-height: 44;
+    -fx-max-height: 44;
+    -fx-alignment: center;
+    -fx-background-color: #5865F2;
+    -fx-background-radius: 12;
     -fx-text-fill: white;
-
-    -fx-font-size: 38px;
-
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
-
 }
 
-.subtitle {
+.settings-button {
+    -fx-min-width: 44;
+    -fx-pref-width: 44;
+    -fx-max-width: 44;
+    -fx-min-height: 44;
+    -fx-pref-height: 44;
+    -fx-max-height: 44;
+    -fx-background-color: #2B2D31;
+    -fx-background-radius: 12;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+}
 
+.settings-button .ikonli-font-icon {
+    -fx-icon-color: #B5BAC1;
+}
+
+.settings-button:hover {
+    -fx-background-color: #5865F2;
+}
+
+.settings-button:hover .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.home-title {
+    -fx-text-fill: #F2F3F5;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.home-subtitle {
     -fx-text-fill: #B5BAC1;
-
-    -fx-font-size: 16px;
-
+    -fx-font-size: 14px;
 }
 
+.template-status-panel {
+    -fx-background-color: #2B2D31;
+    -fx-background-radius: 9;
+    -fx-border-color: #3F4147;
+    -fx-border-radius: 9;
+    -fx-border-width: 1;
+    -fx-padding: 11 14 11 14;
+}
 
+.template-status-label {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
 
-/* ------------------------------------------------ */
-/* Área de Upload */
-/* ------------------------------------------------ */
+.template-status-ready {
+    -fx-text-fill: #23A55A;
+}
+
+.template-status-missing {
+    -fx-text-fill: #F0B232;
+}
+
+.template-settings-link {
+    -fx-background-color: transparent;
+    -fx-text-fill: #00A8FC;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 4 8 4 8;
+}
+
+.template-settings-link:hover {
+    -fx-text-fill: #5CC7FA;
+    -fx-underline: true;
+}
 
 .drop-area {
-
-    -fx-background-color: #2B2D31;
-
-    -fx-background-radius: 18;
-
-    -fx-border-radius: 18;
-
-    -fx-border-color: #404249;
-
+    -fx-min-height: 220;
+    -fx-background-color: #232428;
+    -fx-background-radius: 12;
+    -fx-border-color: #4E5058;
+    -fx-border-radius: 12;
     -fx-border-width: 2;
-
-    -fx-pref-width: 640;
-
-    -fx-max-width: 640;
-
-    -fx-pref-height: 280;
-
-    -fx-padding: 48;
-
-    -fx-spacing: 18;
-
-    -fx-cursor: hand;
-
+    -fx-border-style: segments(8, 7);
 }
 
 .drop-area-hover {
-
-    -fx-background-color: #34363C;
-
+    -fx-background-color: rgba(88, 101, 242, 0.12);
     -fx-border-color: #5865F2;
-
 }
 
 .drop-title {
-
-    -fx-text-fill: white;
-
-    -fx-font-size: 24px;
-
+    -fx-text-fill: #F2F3F5;
+    -fx-font-size: 19px;
     -fx-font-weight: bold;
-
 }
 
 .drop-description {
-
-    -fx-text-fill: #B5BAC1;
-
-    -fx-font-size: 15px;
-
+    -fx-text-fill: #949BA4;
+    -fx-font-size: 13px;
 }
 
-.upload-icon {
-
-    -fx-font-size: 68px;
-
-    -fx-text-fill: #5865F2;
-
-}
-
-
-
-/* ------------------------------------------------ */
-/* Painel dos PDFs */
-/* ------------------------------------------------ */
-
-.file-panel {
-
-    -fx-background-color: #2B2D31;
-
-    -fx-background-radius: 18;
-
-    -fx-padding: 20;
-
-    -fx-spacing: 18;
-
-    -fx-pref-width: 640;
-
-    -fx-max-width: 640;
-
-}
-
-.pdf-counter {
-
-    -fx-text-fill: white;
-
-    -fx-font-size: 15px;
-
-    -fx-font-weight: bold;
-
-}
-
-
-
-/* ------------------------------------------------ */
-/* Lista */
-/* ------------------------------------------------ */
-
-.list-view {
-
-    -fx-background-color: #1E1F22;
-
-    -fx-background-radius: 14;
-
-    -fx-border-radius: 14;
-
-    -fx-border-color: #404249;
-
-    -fx-padding: 8;
-
-}
-
-.list-view .viewport {
-
-    -fx-background-color: transparent;
-
-}
-
-.list-cell {
-
-    -fx-background-color: transparent;
-
-    -fx-padding: 4 0;
-
-}
-
-.list-cell:filled {
-
-    -fx-background-color: transparent;
-
-}
-
-.list-cell:filled:selected {
-
-    -fx-background-color: transparent;
-
-}
-
-.list-cell:filled:hover {
-
-    -fx-background-color: transparent;
-
-}
-
-
-
-/* ------------------------------------------------ */
-/* ScrollBar */
-/* ------------------------------------------------ */
-
-.scroll-bar:vertical {
-
-    -fx-background-color: transparent;
-
-}
-
-.scroll-bar .thumb {
-
-    -fx-background-color: #5865F2;
-
-    -fx-background-radius: 20;
-
-}
-
-.scroll-bar .track {
-
-    -fx-background-color: transparent;
-
-}
-
-
-
-/* ------------------------------------------------ */
-/* Botões */
-/* ------------------------------------------------ */
-
-.button {
-
-    -fx-font-size: 14px;
-
-    -fx-font-weight: bold;
-
-    -fx-padding: 10 24;
-
-    -fx-background-radius: 10;
-
-    -fx-border-radius: 10;
-
-    -fx-cursor: hand;
-
-}
-
+.select-pdf-button,
 .primary-button {
-
     -fx-background-color: #5865F2;
-
+    -fx-background-radius: 6;
     -fx-text-fill: white;
-
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 18 9 18;
+    -fx-cursor: hand;
 }
 
+.select-pdf-button:hover,
 .primary-button:hover {
-
     -fx-background-color: #4752C4;
-
 }
 
-.primary-button:pressed {
-
-    -fx-background-color: #3945B5;
-
+.primary-button:disabled {
+    -fx-opacity: 0.38;
 }
 
 .secondary-button {
-
-    -fx-background-color: transparent;
-
-    -fx-text-fill: #5865F2;
-
-    -fx-border-color: #5865F2;
-
-    -fx-border-width: 1.5;
-
+    -fx-background-color: #4E5058;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 18 9 18;
+    -fx-cursor: hand;
 }
 
 .secondary-button:hover {
-
-    -fx-background-color: #5865F2;
-
-    -fx-text-fill: white;
-
+    -fx-background-color: #6D6F78;
 }
 
-.secondary-button:pressed {
-
-    -fx-background-color: #4752C4;
-
+.secondary-button:disabled {
+    -fx-opacity: 0.38;
 }
 
-.button:disabled {
+.pdf-counter {
+    -fx-text-fill: #DBDEE1;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
 
-    -fx-opacity: .45;
+.pdf-list {
+    -fx-background-color: #111214;
+    -fx-background-radius: 9;
+    -fx-border-color: #2B2D31;
+    -fx-border-radius: 9;
+    -fx-border-width: 1;
+    -fx-padding: 6;
+}
 
+.pdf-list .viewport {
+    -fx-background-color: transparent;
+}
+
+.pdf-list .list-cell {
+    -fx-background-color: transparent;
 }

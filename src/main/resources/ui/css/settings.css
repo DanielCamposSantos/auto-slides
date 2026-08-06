@@ -1,0 +1,126 @@
+.settings-root {
+    -fx-background-color: #1E1F22;
+}
+
+.settings-title {
+    -fx-text-fill: #F2F3F5;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+}
+
+.settings-subtitle {
+    -fx-text-fill: #B5BAC1;
+    -fx-font-size: 14px;
+}
+
+.settings-back-button {
+    -fx-background-color: #4E5058;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 18 9 18;
+    -fx-cursor: hand;
+}
+
+.settings-back-button:hover {
+    -fx-background-color: #6D6F78;
+}
+
+.template-settings-card {
+    -fx-background-color: #2B2D31;
+    -fx-background-radius: 14;
+    -fx-border-color: #3F4147;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-padding: 28;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.32), 22, 0.14, 0, 8);
+}
+
+.template-large-icon-container {
+    -fx-min-width: 68;
+    -fx-pref-width: 68;
+    -fx-max-width: 68;
+    -fx-min-height: 68;
+    -fx-pref-height: 68;
+    -fx-max-height: 68;
+    -fx-background-color: #D24726;
+    -fx-background-radius: 14;
+}
+
+.template-large-icon-container .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.template-settings-label {
+    -fx-text-fill: #949BA4;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.template-settings-name {
+    -fx-text-fill: #F2F3F5;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.template-settings-path {
+    -fx-text-fill: #B5BAC1;
+    -fx-font-size: 12px;
+}
+
+.template-information-box {
+    -fx-background-color: #1E1F22;
+    -fx-background-radius: 9;
+    -fx-border-color: #3F4147;
+    -fx-border-radius: 9;
+    -fx-border-width: 1;
+    -fx-padding: 14;
+}
+
+.information-label {
+    -fx-text-fill: #949BA4;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.information-value {
+    -fx-text-fill: #F2F3F5;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.choose-template-button {
+    -fx-background-color: #5865F2;
+    -fx-background-radius: 6;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 18 9 18;
+    -fx-cursor: hand;
+}
+
+.choose-template-button:hover {
+    -fx-background-color: #4752C4;
+}
+
+.remove-template-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-border-color: #DA373C;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-text-fill: #F23F42;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 17 8 17;
+    -fx-cursor: hand;
+}
+
+.remove-template-button:hover {
+    -fx-background-color: rgba(218, 55, 60, 0.16);
+}
+
+.remove-template-button:disabled {
+    -fx-opacity: 0.35;
+}
