@@ -63,12 +63,6 @@ cd auto-pdf
 .\gradlew.bat run
 ```
 
-Para executar os testes:
-
-```powershell
-.\gradlew.bat test
-```
-
 ## Licença
 
 Este repositório ainda não possui uma licença definida.
