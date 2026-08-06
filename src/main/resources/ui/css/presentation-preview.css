@@ -56,20 +56,6 @@
     -fx-font-size: 12px;
 }
 
-.template-button {
-    -fx-background-color: #4E5058;
-    -fx-background-radius: 6;
-    -fx-text-fill: white;
-    -fx-font-size: 13px;
-    -fx-font-weight: bold;
-    -fx-padding: 9 16 9 16;
-    -fx-cursor: hand;
-}
-
-.template-button:hover {
-    -fx-background-color: #6D6F78;
-}
-
 .preview-counter {
     -fx-text-fill: #F2F3F5;
     -fx-font-size: 14px;

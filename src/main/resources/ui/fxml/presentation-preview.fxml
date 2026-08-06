@@ -29,21 +29,18 @@
         </padding>
 
         <top>
-
             <VBox spacing="18">
 
                 <HBox alignment="CENTER_LEFT" spacing="18">
 
                     <VBox spacing="6">
-
                         <Label
                                 text="Montagem da apresentação"
                                 styleClass="presentation-title"/>
 
                         <Label
-                                text="Revise os slides que serão incluídos na versão final do PowerPoint."
+                                text="Revise os slides do template que serão incluídos na apresentação final."
                                 styleClass="presentation-subtitle"/>
-
                     </VBox>
 
                     <Region HBox.hgrow="ALWAYS"/>
@@ -58,7 +55,6 @@
                             text="Gerar apresentação"
                             styleClass="primary-button"
                             onAction="#onFinish"/>
-
                 </HBox>
 
                 <HBox
@@ -73,33 +69,22 @@
                         <Label
                                 text="P"
                                 styleClass="template-icon"/>
-
                     </VBox>
 
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
 
                         <Label
-                                text="Template do PowerPoint"
+                                text="Template configurado"
                                 styleClass="template-label"/>
 
                         <Label
                                 fx:id="templateNameLabel"
-                                text="Nenhum template selecionado"
                                 styleClass="template-name"/>
 
                         <Label
                                 fx:id="templatePathLabel"
-                                text="Selecione um arquivo PowerPoint para continuar."
                                 styleClass="template-path"/>
-
                     </VBox>
-
-                    <Button
-                            fx:id="changeTemplateButton"
-                            text="Selecionar template"
-                            styleClass="template-button"
-                            onAction="#onChooseTemplate"/>
-
                 </HBox>
 
                 <HBox alignment="CENTER_LEFT" spacing="12">
@@ -126,24 +111,25 @@
 
                     <Button
                             fx:id="undoButton"
-                            text="Desfazer exclusões"
+                            text="Desfazer"
+                            styleClass="undo-button"
+                            onAction="#onUndo"/>
+
+                    <Button
+                            fx:id="undoAllButton"
+                            text="Restaurar todos"
                             styleClass="undo-button"
                             onAction="#onUndoAll"/>
-
                 </HBox>
-
             </VBox>
-
         </top>
 
         <center>
-
             <StackPane
                     BorderPane.alignment="CENTER"
                     styleClass="slides-viewer">
 
                 <ScrollPane
-                        fx:id="slidesScrollPane"
                         fitToWidth="true"
                         pannable="false"
                         hbarPolicy="NEVER"
@@ -151,7 +137,6 @@
                         styleClass="slides-scroll-pane">
 
                     <content>
-
                         <StackPane>
 
                             <VBox
@@ -162,7 +147,6 @@
                                 <padding>
                                     <Insets top="24" right="24" bottom="34" left="24"/>
                                 </padding>
-
                             </VBox>
 
                             <VBox
@@ -178,25 +162,15 @@
                                         styleClass="empty-slides-title"/>
 
                                 <Label
-                                        text="Use Ctrl + Z ou o botão Desfazer exclusão para restaurar o último slide removido."
+                                        text="Use Ctrl + Z, Desfazer ou Restaurar todos para recuperar os slides removidos."
                                         wrapText="true"
                                         styleClass="empty-slides-description"/>
-
                             </VBox>
-
                         </StackPane>
-
                     </content>
-
                 </ScrollPane>
-
             </StackPane>
-
         </center>
-
-        <BorderPane.margin>
-            <Insets top="0" right="0" bottom="0" left="0"/>
-        </BorderPane.margin>
 
     </BorderPane>
 

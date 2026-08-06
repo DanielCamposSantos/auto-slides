@@ -3,6 +3,7 @@ package io.github.danielcampossantos.ui.controller;
 import io.github.danielcampossantos.model.PresentationSlideItem;
 import io.github.danielcampossantos.service.ApplicationService;
 import io.github.danielcampossantos.service.PopupService;
+import io.github.danielcampossantos.service.PresentationTemplateService;
 import io.github.danielcampossantos.service.TemplatePreferencesService;
 import io.github.danielcampossantos.ui.navigation.SceneManager;
 import io.github.danielcampossantos.ui.navigation.SceneType;
@@ -10,23 +11,28 @@ import io.github.danielcampossantos.ui.view.PresentationSlideCard;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 import lombok.extern.log4j.Log4j2;
-import org.jspecify.annotations.NonNull;
 
-import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Log4j2
 public final class PresentationPreviewController {
 
     private final TemplatePreferencesService templatePreferencesService = TemplatePreferencesService.getInstance();
+
+    private final PresentationTemplateService presentationTemplateService = new PresentationTemplateService();
 
     private final List<PresentationSlideItem> slides = new ArrayList<>();
 
@@ -50,19 +56,16 @@ public final class PresentationPreviewController {
     private Label cropCounterLabel;
 
     @FXML
-    private ScrollPane slidesScrollPane;
-
-    @FXML
     private VBox slidesContainer;
 
     @FXML
     private VBox emptyState;
 
     @FXML
-    private Button changeTemplateButton;
+    private Button undoButton;
 
     @FXML
-    private Button undoButton;
+    private Button undoAllButton;
 
     @FXML
     private Button finishButton;
@@ -72,8 +75,12 @@ public final class PresentationPreviewController {
     @FXML
     private void initialize() {
         initializeKeyboardShortcuts();
-        loadSavedTemplate();
-        loadPlaceholderSlides();
+
+        if (!loadTemplate()) {
+            return;
+        }
+
+        loadTemplateSlides();
         renderSlides();
         updateView();
     }
@@ -87,56 +94,42 @@ public final class PresentationPreviewController {
         });
     }
 
-    private void loadSavedTemplate() {
-        Optional<Path> savedTemplate = templatePreferencesService.getTemplate();
+    private boolean loadTemplate() {
+        Optional<Path> template = templatePreferencesService.getTemplate();
 
-        if (savedTemplate.isPresent()) {
-            selectedTemplate = savedTemplate.get();
-            updateTemplateInformation();
-            return;
+        if (template.isEmpty()) {
+            PopupService.getInstance().show(
+                    io.github.danielcampossantos.ui.popup.PopupType.WARNING,
+                    "Template não configurado",
+                    "Selecione um template nas configurações antes de abrir esta tela.",
+                    () -> SceneManager.getInstance().show(SceneType.SETTINGS)
+            );
+
+            return false;
         }
 
-        clearTemplateInformation();
+        selectedTemplate = template.get();
+
+        templateNameLabel.setText(selectedTemplate.getFileName().toString());
+        templatePathLabel.setText(selectedTemplate.toAbsolutePath().toString());
+
+        return true;
     }
 
-    private void loadPlaceholderSlides() {
-        slides.clear();
+    private void loadTemplateSlides() {
+        try {
+            slides.clear();
+            slides.addAll(presentationTemplateService.readSlides(selectedTemplate));
+        } catch (IOException exception) {
+            log.error("Não foi possível carregar os slides do template.", exception);
 
-        slides.add(new PresentationSlideItem(
-                1,
-                "Visão geral",
-                "Apresentação inicial dos dados processados."
-        ));
-
-        slides.add(new PresentationSlideItem(
-                2,
-                "Indicadores principais",
-                "Espaço reservado para os primeiros recortes gerados."
-        ));
-
-        slides.add(new PresentationSlideItem(
-                3,
-                "Análise comparativa",
-                "Comparação visual entre os resultados selecionados."
-        ));
-
-        slides.add(new PresentationSlideItem(
-                4,
-                "Distribuição dos resultados",
-                "Organização dos dados extraídos das páginas dos PDFs."
-        ));
-
-        slides.add(new PresentationSlideItem(
-                5,
-                "Detalhamento",
-                "Visualização detalhada das imagens selecionadas."
-        ));
-
-        slides.add(new PresentationSlideItem(
-                6,
-                "Conclusões",
-                "Resumo visual da apresentação gerada."
-        ));
+            PopupService.getInstance().show(
+                    io.github.danielcampossantos.ui.popup.PopupType.ERROR,
+                    "Erro ao carregar template",
+                    exception.getMessage(),
+                    () -> SceneManager.getInstance().show(SceneType.SETTINGS)
+            );
+        }
     }
 
     private void renderSlides() {
@@ -144,7 +137,10 @@ public final class PresentationPreviewController {
         slideCards.clear();
 
         for (PresentationSlideItem slide : slides) {
-            PresentationSlideCard card = new PresentationSlideCard(slide, this::removeSlide);
+            PresentationSlideCard card = new PresentationSlideCard(
+                    slide,
+                    this::removeSlide
+            );
 
             slideCards.put(slide, card);
             slidesContainer.getChildren().add(card);
@@ -176,105 +172,60 @@ public final class PresentationPreviewController {
             return;
         }
 
-        RemovedSlide removedSlide = getRemovedSlide();
-
-        log.info("Remoção do slide {} desfeita.", removedSlide.slide().slideNumber());
+        restoreLastRemovedSlide();
     }
-
 
     @FXML
     private void onUndoAll() {
-        if (removalHistory.isEmpty()) {
-            return;
+        while (!removalHistory.isEmpty()) {
+            restoreLastRemovedSlide();
         }
-
-        for (var _ : removalHistory) {
-            getRemovedSlide();
-        }
-
-
-        log.info("Remoção de {} slides desfeita.", removalHistory.size());
     }
 
-    private @NonNull RemovedSlide getRemovedSlide() {
+    private void restoreLastRemovedSlide() {
         RemovedSlide removedSlide = removalHistory.pop();
-
         int insertionIndex = Math.min(removedSlide.index(), slides.size());
 
         slides.add(insertionIndex, removedSlide.slide());
 
-        PresentationSlideCard card = new PresentationSlideCard(removedSlide.slide(), this::removeSlide);
+        PresentationSlideCard card = new PresentationSlideCard(
+                removedSlide.slide(),
+                this::removeSlide
+        );
 
         slideCards.put(removedSlide.slide(), card);
         slidesContainer.getChildren().add(insertionIndex, card);
 
         updateView();
-        return removedSlide;
-    }
 
-
-    @FXML
-    private void onChooseTemplate() {
-        FileChooser fileChooser = new FileChooser();
-
-        fileChooser.setTitle("Selecionar template do PowerPoint");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter(
-                        "Apresentações do PowerPoint",
-                        "*.pptx",
-                        "*.ppt"
-                )
+        log.info(
+                "Remoção do slide {} desfeita.",
+                removedSlide.slide().slideNumber()
         );
-
-        if (selectedTemplate != null && selectedTemplate.getParent() != null) {
-            File parentDirectory = selectedTemplate.getParent().toFile();
-
-            if (parentDirectory.isDirectory()) {
-                fileChooser.setInitialDirectory(parentDirectory);
-            }
-        }
-
-        File selectedFile = fileChooser.showOpenDialog(rootPane.getScene().getWindow());
-
-        if (selectedFile == null) {
-            return;
-        }
-
-        selectedTemplate = selectedFile.toPath();
-
-        templatePreferencesService.saveTemplate(selectedTemplate);
-
-        updateTemplateInformation();
-
-        PopupService.getInstance().success(
-                "Template selecionado",
-                "O arquivo será utilizado como modelo para as próximas apresentações."
-        );
-    }
-
-    private void updateTemplateInformation() {
-        templateNameLabel.setText(selectedTemplate.getFileName().toString());
-        templatePathLabel.setText(selectedTemplate.toAbsolutePath().toString());
-        changeTemplateButton.setText("Trocar template");
-    }
-
-    private void clearTemplateInformation() {
-        templateNameLabel.setText("Nenhum template selecionado");
-        templatePathLabel.setText("Selecione um arquivo PowerPoint para continuar.");
-        changeTemplateButton.setText("Selecionar template");
     }
 
     private void updateView() {
         int slideCount = slides.size();
         int cropCount = getCropCount();
 
-        slideCounterLabel.setText(slideCount == 1 ? "1 slide na apresentação" : slideCount + " slides na apresentação");
-        cropCounterLabel.setText(cropCount == 1 ? "1 imagem processada" : cropCount + " imagens processadas");
+        slideCounterLabel.setText(
+                slideCount == 1
+                        ? "1 slide na apresentação"
+                        : slideCount + " slides na apresentação"
+        );
 
-        undoButton.setDisable(removalHistory.isEmpty());
-        finishButton.setDisable(selectedTemplate == null || slides.isEmpty());
+        cropCounterLabel.setText(
+                cropCount == 1
+                        ? "1 imagem processada"
+                        : cropCount + " imagens processadas"
+        );
 
+        boolean hasHistory = !removalHistory.isEmpty();
         boolean empty = slides.isEmpty();
+
+        undoButton.setDisable(!hasHistory);
+        undoAllButton.setDisable(!hasHistory);
+        finishButton.setDisable(empty);
 
         emptyState.setVisible(empty);
         emptyState.setManaged(empty);
@@ -301,7 +252,7 @@ public final class PresentationPreviewController {
                     .filter(java.nio.file.Files::isRegularFile)
                     .filter(path -> path.getFileName().toString().toLowerCase().endsWith(".png"))
                     .count();
-        } catch (Exception exception) {
+        } catch (IOException exception) {
             log.error("Não foi possível contar as imagens recortadas.", exception);
             return 0;
         }
@@ -316,7 +267,7 @@ public final class PresentationPreviewController {
     private void onFinish() {
         PopupService.getInstance().information(
                 "Montagem da apresentação",
-                "A integração com o PowerPoint será implementada na próxima etapa."
+                "A integração definitiva com o PowerPoint será implementada na próxima etapa."
         );
     }
 
