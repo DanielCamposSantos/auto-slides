@@ -2,13 +2,9 @@ package io.github.danielcampossantos.ui.controller;
 
 import io.github.danielcampossantos.model.PdfPage;
 import io.github.danielcampossantos.model.SelectionArea;
-import io.github.danielcampossantos.service.ApplicationService;
-import io.github.danielcampossantos.service.ImageService;
-import io.github.danielcampossantos.service.SelectionConfigService;
-import io.github.danielcampossantos.service.Workspace;
+import io.github.danielcampossantos.service.*;
 import io.github.danielcampossantos.ui.navigation.SceneManager;
 import io.github.danielcampossantos.ui.navigation.SceneType;
-import io.github.danielcampossantos.ui.popup.PopupService;
 import io.github.danielcampossantos.ui.tree.NodeType;
 import io.github.danielcampossantos.ui.tree.SelectionTreeNode;
 import io.github.danielcampossantos.ui.view.PdfPageView;
