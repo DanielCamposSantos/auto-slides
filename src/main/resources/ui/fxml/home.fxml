@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane
+        xmlns="http://javafx.com/javafx/25"
+        xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="io.github.danielcampossantos.ui.controller.HomeController">
+
+    <stylesheets>
+        <URL value="@../css/home.css"/>
+    </stylesheets>
+
+    <padding>
+        <Insets top="32"
+                right="32"
+                bottom="24"
+                left="32"/>
+    </padding>
+
+    <top>
+
+        <VBox
+                alignment="CENTER"
+                spacing="14">
+
+            <padding>
+
+                <Insets
+                        top="20"
+                        bottom="20"/>
+
+            </padding>
+
+            <Label
+                    text="Auto Slides"
+                    styleClass="title"/>
+
+            <Label
+                    maxWidth="900"
+                    wrapText="true"
+                    textAlignment="CENTER"
+                    text="Automatize completamente a geração de apresentações PowerPoint a partir de arquivos PDF padronizados."
+                    styleClass="subtitle"/>
+
+        </VBox>
+
+    </top>
+
+    <center>
+
+        <VBox
+                alignment="TOP_CENTER"
+                spacing="36">
+
+            <VBox
+                    fx:id="dropArea"
+                    alignment="CENTER"
+                    spacing="18"
+                    styleClass="drop-area"
+                    onMouseClicked="#onSelectPdf"
+                    onDragEntered="#onDragEntered"
+                    onDragExited="#onDragExited"
+                    onDragOver="#onDragOver"
+                    onDragDropped="#onDragDropped">
+
+                <Label
+                        text="upload_file"
+                        styleClass="material-icon upload-icon"/>
+
+                <Label
+                        text="Adicionar arquivos PDF"
+                        styleClass="drop-title"/>
+
+                <Label
+                        text="Clique ou arraste um ou mais arquivos PDF para esta área."
+                        styleClass="drop-description"/>
+
+                <Button
+                        text="Selecionar Arquivos"
+                        styleClass="primary-button"
+                        onAction="#onSelectPdf"/>
+
+            </VBox>
+
+            <VBox
+                    spacing="12"
+                    styleClass="file-panel">
+
+                <HBox alignment="CENTER_LEFT">
+
+                    <Label
+                            fx:id="pdfCounterLabel"
+                            text="Nenhum PDF selecionado"
+                            styleClass="pdf-counter"/>
+
+                    <Region
+                            HBox.hgrow="ALWAYS"/>
+
+                    <Button
+                            fx:id="clearSelectionButton"
+                            text="Limpar seleção"
+                            styleClass="secondary-button"
+                            onAction="#onClearSelection"/>
+
+                </HBox>
+
+                <ListView
+                        fx:id="pdfListView"
+                        prefHeight="260"
+                        VBox.vgrow="ALWAYS"/>
+
+            </VBox>
+
+        </VBox>
+
+    </center>
+
+    <bottom>
+
+        <HBox alignment="CENTER_RIGHT">
+
+            <Region
+                    HBox.hgrow="ALWAYS"/>
+
+            <Button
+                    fx:id="continueButton"
+                    text="Continuar"
+                    styleClass="primary-button"
+                    onAction="#onContinue"/>
+
+        </HBox>
+
+    </bottom>
+
+</BorderPane>

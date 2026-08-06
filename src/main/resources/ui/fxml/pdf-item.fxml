@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<HBox
+        xmlns="http://javafx.com/javafx/25"
+        xmlns:fx="http://javafx.com/fxml/1"
+        fx:controller="io.github.danielcampossantos.ui.controller.PdfItemController"
+        alignment="CENTER_LEFT"
+        spacing="16"
+        styleClass="pdf-item">
+
+    <stylesheets>
+        <URL value="@../css/pdf-item.css"/>
+    </stylesheets>
+
+    <padding>
+        <Insets top="12"
+                right="16"
+                bottom="12"
+                left="16"/>
+    </padding>
+
+    <ImageView
+            fx:id="pdfIcon"
+            fitWidth="24"
+            fitHeight="24"
+            preserveRatio="true"/>
+
+    <Label
+            fx:id="fileNameLabel"
+            styleClass="pdf-file-name"/>
+
+    <Region
+            HBox.hgrow="ALWAYS"/>
+
+    <FontIcon
+            fx:id="deleteIcon"
+            iconLiteral="mdi2d-delete"
+            styleClass="delete-icon"
+            onMouseClicked="#onDelete"/>
+
+</HBox>

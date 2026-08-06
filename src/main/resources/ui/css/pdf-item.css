@@ -1,0 +1,45 @@
+.pdf-item {
+
+    -fx-background-color: #383A40;
+
+    -fx-background-radius: 12;
+
+    -fx-border-radius: 12;
+
+    -fx-border-color: #4A4D55;
+
+    -fx-border-width: 1;
+
+}
+
+.pdf-item:hover {
+
+    -fx-background-color: #43464D;
+
+}
+
+.pdf-file-name {
+
+    -fx-text-fill: white;
+
+    -fx-font-size: 15px;
+
+    -fx-font-weight: bold;
+
+}
+
+.delete-icon {
+
+    -fx-icon-size: 20;
+
+    -fx-icon-color: white;
+
+    -fx-cursor: hand;
+
+}
+
+.delete-icon:hover {
+
+    -fx-icon-color: #ED4245;
+
+}
