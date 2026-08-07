@@ -16,7 +16,7 @@ public final class Main extends Application {
         ApplicationService.getInstance().clearWorkspace();
     }
 
-    static void main(String[] args) {
+    public static void main(String[] args) {
         launch(args);
     }
 }
