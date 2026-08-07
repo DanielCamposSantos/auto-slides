@@ -310,9 +310,16 @@ public final class AreaSelectionController {
         }
     }
 
-    private void onSelectionDrawn(PdfPageView pageView, SelectionArea area) {
+    private void onSelectionDrawn(
+            PdfPageView pageView,
+            SelectionArea area
+    ) {
         destinationPopup.show(
-                destination -> confirmSelection(area, destination),
+                List.copyOf(assignments.values()),
+                destination -> confirmSelection(
+                        area,
+                        destination
+                ),
                 () -> pageView.removeSelection(area)
         );
     }

@@ -7,28 +7,28 @@
 }
 
 .popup-card {
-    -fx-min-width: 390;
-    -fx-pref-width: 470;
+    -fx-min-width: 420;
+    -fx-pref-width: 500;
     -fx-max-width: 520;
     -fx-background-color: #2B2D31;
     -fx-background-radius: 14;
     -fx-border-radius: 14;
     -fx-border-color: #3F4147;
     -fx-border-width: 1;
-    -fx-padding: 28 30 26 30;
+    -fx-padding: 18 20 18 20;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 32, 0.2, 0, 12);
 }
 
 .popup-icon {
-    -fx-min-width: 52;
-    -fx-pref-width: 52;
-    -fx-max-width: 52;
-    -fx-min-height: 52;
-    -fx-pref-height: 52;
-    -fx-max-height: 52;
+    -fx-min-width: 38;
+    -fx-pref-width: 38;
+    -fx-max-width: 38;
+    -fx-min-height: 38;
+    -fx-pref-height: 38;
+    -fx-max-height: 38;
     -fx-alignment: center;
     -fx-background-radius: 100;
-    -fx-font-size: 27px;
+    -fx-font-size: 20px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
 }
@@ -52,30 +52,32 @@
 
 .popup-title {
     -fx-text-fill: #F2F3F5;
-    -fx-font-size: 20px;
+    -fx-font-size: 16px;
     -fx-font-weight: bold;
-    -fx-alignment: center;
-    -fx-text-alignment: center;
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
 }
 
 .popup-message {
     -fx-text-fill: #B5BAC1;
-    -fx-font-size: 14px;
-    -fx-line-spacing: 3px;
-    -fx-alignment: center;
-    -fx-text-alignment: center;
+    -fx-font-size: 13px;
+    -fx-line-spacing: 1px;
+    -fx-alignment: center-left;
+    -fx-text-alignment: left;
 }
 
 .popup-confirm-button {
-    -fx-min-width: 140;
-    -fx-pref-height: 38;
+    -fx-min-width: 104;
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
+    -fx-max-height: 34;
     -fx-background-color: #5865F2;
     -fx-background-radius: 6;
     -fx-text-fill: white;
-    -fx-font-size: 14px;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
     -fx-cursor: hand;
-    -fx-padding: 8 20 8 20;
+    -fx-padding: 5 16 5 16;
 }
 
 .popup-confirm-button:hover {
@@ -86,17 +88,6 @@
     -fx-background-color: #3C45A5;
 }
 
-.destination-popup-card {
-    -fx-min-width: 440;
-    -fx-pref-width: 500;
-    -fx-max-width: 540;
-    -fx-background-color: #2B2D31;
-    -fx-background-radius: 14;
-    -fx-border-color: #3F4147;
-    -fx-border-radius: 14;
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 32, 0.2, 0, 12);
-}
 
 .destination-field-label {
     -fx-text-fill: #DBDEE1;
@@ -136,13 +127,86 @@
     -fx-font-size: 12px;
 }
 
+
+.destination-popup-card {
+    -fx-min-width: 440;
+    -fx-pref-width: 500;
+    -fx-max-width: 520;
+    -fx-background-color: #2B2D31;
+    -fx-background-radius: 14;
+    -fx-border-color: #3F4147;
+    -fx-border-radius: 14;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(
+            gaussian,
+            rgba(0, 0, 0, 0.55),
+            32,
+            0.20,
+            0,
+            12
+    );
+}
+
+.destination-list {
+    -fx-background-color: #1E1F22;
+    -fx-background-radius: 8;
+    -fx-border-color: #3F4147;
+    -fx-border-radius: 8;
+    -fx-border-width: 1;
+    -fx-padding: 4;
+}
+
+.destination-list .viewport {
+    -fx-background-color: transparent;
+}
+
+.destination-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 0 14 0 14;
+    -fx-pref-height: 48;
+    -fx-text-fill: #DBDEE1;
+}
+
+.destination-list .list-cell:hover {
+    -fx-background-color: #35373C;
+}
+
+.destination-list .list-cell:selected {
+    -fx-background-color: #5865F2;
+}
+
+.destination-list .list-cell:selected .destination-option-name,
+.destination-list .list-cell:selected .destination-option-usage {
+    -fx-text-fill: white;
+}
+
+.destination-option-name {
+    -fx-text-fill: #F2F3F5;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.destination-option-usage {
+    -fx-text-fill: #23A55A;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.destination-option-used .destination-option-name {
+    -fx-text-fill: #DBDEE1;
+}
+
 .destination-cancel-button {
+    -fx-min-height: 34;
+    -fx-pref-height: 34;
+    -fx-max-height: 34;
     -fx-background-color: #4E5058;
     -fx-background-radius: 6;
     -fx-text-fill: white;
-    -fx-font-size: 14px;
+    -fx-font-size: 13px;
     -fx-font-weight: bold;
-    -fx-padding: 8 18 8 18;
+    -fx-padding: 5 16 5 16;
     -fx-cursor: hand;
 }
 

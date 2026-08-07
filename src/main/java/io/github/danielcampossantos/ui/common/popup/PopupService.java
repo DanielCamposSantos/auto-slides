@@ -10,6 +10,8 @@ import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -86,8 +88,9 @@ public final class PopupService {
     }
 
     private VBox createCard(PopupType type, String title, String message) {
-        VBox card = new VBox(14);
-        card.setAlignment(Pos.CENTER);
+        VBox card = new VBox(12);
+        card.setAlignment(Pos.TOP_LEFT);
+        card.setMaxHeight(Region.USE_PREF_SIZE);
         card.getStyleClass().addAll("popup-card", type.styleClass());
 
         Label icon = new Label(type.symbol());
@@ -96,17 +99,30 @@ public final class PopupService {
         Label titleLabel = new Label(title);
         titleLabel.getStyleClass().add("popup-title");
         titleLabel.setWrapText(true);
+        titleLabel.setMaxWidth(420);
 
         Label messageLabel = new Label(message == null ? "" : message);
         messageLabel.getStyleClass().add("popup-message");
         messageLabel.setWrapText(true);
-        messageLabel.setMaxWidth(470);
+        messageLabel.setMaxWidth(420);
+
+        VBox copy = new VBox(4, titleLabel, messageLabel);
+        copy.setAlignment(Pos.TOP_LEFT);
+        copy.setMinWidth(0);
+        copy.setMaxWidth(Double.MAX_VALUE);
+
+        HBox content = new HBox(14, icon, copy);
+        content.setAlignment(Pos.TOP_LEFT);
+        HBox.setHgrow(copy, Priority.ALWAYS);
 
         Button confirmButton = new Button("Entendido");
         confirmButton.getStyleClass().add("popup-confirm-button");
         confirmButton.setDefaultButton(true);
 
-        card.getChildren().addAll(icon, titleLabel, messageLabel, confirmButton);
+        HBox actions = new HBox(confirmButton);
+        actions.setAlignment(Pos.CENTER_RIGHT);
+
+        card.getChildren().addAll(content, actions);
         card.getProperties().put("confirmButton", confirmButton);
 
         return card;
