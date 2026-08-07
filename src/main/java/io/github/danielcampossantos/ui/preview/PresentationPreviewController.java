@@ -1,11 +1,11 @@
 package io.github.danielcampossantos.ui.preview;
 
 import io.github.danielcampossantos.application.workspace.ApplicationService;
+import io.github.danielcampossantos.application.workspace.Workspace;
 import io.github.danielcampossantos.domain.template.PresentationSlideItem;
+import io.github.danielcampossantos.infrastructure.template.PresentationGenerationService;
 import io.github.danielcampossantos.infrastructure.template.PresentationTemplateService;
-import io.github.danielcampossantos.infrastructure.template.TemplatePreferencesService;
 import io.github.danielcampossantos.ui.common.popup.PopupService;
-import io.github.danielcampossantos.ui.common.popup.PopupType;
 import io.github.danielcampossantos.ui.navigation.SceneManager;
 import io.github.danielcampossantos.ui.navigation.SceneType;
 import javafx.fxml.FXML;
@@ -15,8 +15,10 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import lombok.extern.log4j.Log4j2;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
@@ -24,15 +26,11 @@ import java.util.*;
 @Log4j2
 public final class PresentationPreviewController {
 
-    private final TemplatePreferencesService templatePreferencesService = TemplatePreferencesService.getInstance();
-
     private final PresentationTemplateService presentationTemplateService = new PresentationTemplateService();
-
+    private final PresentationGenerationService presentationGenerationService = new PresentationGenerationService();
     private final List<PresentationSlideItem> slides = new ArrayList<>();
-
-    private final Map<PresentationSlideItem, PresentationSlideCard> slideCards = new LinkedHashMap<>();
-
     private final Deque<RemovedSlide> removalHistory = new ArrayDeque<>();
+    private final Set<Integer> removedSlideIndexes = new LinkedHashSet<>();
 
     @FXML
     private StackPane rootPane;
@@ -64,19 +62,13 @@ public final class PresentationPreviewController {
     @FXML
     private Button finishButton;
 
-    private Path selectedTemplate;
+    private Workspace workspace;
+    private Path generatedPresentationPath;
 
     @FXML
     private void initialize() {
         initializeKeyboardShortcuts();
-
-        if (!loadTemplate()) {
-            return;
-        }
-
-        loadTemplateSlides();
-        renderSlides();
-        updateView();
+        loadGeneratedPresentation();
     }
 
     private void initializeKeyboardShortcuts() {
@@ -88,121 +80,81 @@ public final class PresentationPreviewController {
         });
     }
 
-    private boolean loadTemplate() {
-        Optional<Path> template = templatePreferencesService.getTemplate();
-
-        if (template.isEmpty()) {
-            PopupService.getInstance().show(
-                    PopupType.WARNING,
-                    "Template não configurado",
-                    "Selecione um template nas configurações antes de abrir esta tela.",
-                    () -> SceneManager.getInstance().show(SceneType.SETTINGS)
-            );
-
-            return false;
-        }
-
-        selectedTemplate = template.get();
-
-        templateNameLabel.setText(selectedTemplate.getFileName().toString());
-        templatePathLabel.setText(selectedTemplate.toAbsolutePath().toString());
-
-        return true;
-    }
-
-    private void loadTemplateSlides() {
-        var workspace = ApplicationService.getInstance().getWorkspace();
+    private void loadGeneratedPresentation() {
+        workspace = ApplicationService.getInstance().getWorkspace();
 
         if (workspace == null || workspace.getTemporaryDirectory() == null) {
             PopupService.getInstance().error(
                     "Workspace indisponível",
-                    "Não foi possível localizar a pasta temporária da execução."
+                    "Não foi possível localizar os arquivos temporários da apresentação."
             );
-
             return;
         }
 
+        generatedPresentationPath = workspace.getGeneratedPresentationPath();
+
+        if (generatedPresentationPath == null) {
+            PopupService.getInstance().error(
+                    "Apresentação indisponível",
+                    "A apresentação ainda não foi gerada. Volte para a seleção e finalize o processamento."
+            );
+            return;
+        }
+
+        templateNameLabel.setText(generatedPresentationPath.getFileName().toString());
+        templatePathLabel.setText(generatedPresentationPath.toAbsolutePath().toString());
+
         try {
             slides.clear();
-
             slides.addAll(
                     presentationTemplateService.readSlides(
-                            selectedTemplate,
+                            generatedPresentationPath,
                             workspace.getTemporaryDirectory()
                     )
             );
-        } catch (IOException exception) {
-            log.error("Não foi possível carregar os slides do template.", exception);
 
-            PopupService.getInstance().show(
-                    PopupType.ERROR,
-                    "Erro ao carregar template",
-                    exception.getMessage(),
-                    () -> SceneManager.getInstance().show(SceneType.SETTINGS)
+            renderSlides();
+            updateView();
+        } catch (IOException exception) {
+            log.error("Não foi possível carregar o preview da apresentação.", exception);
+
+            PopupService.getInstance().error(
+                    "Erro ao gerar preview",
+                    exception.getMessage() == null
+                            ? "Não foi possível renderizar os slides gerados."
+                            : exception.getMessage()
             );
         }
     }
 
     private void renderSlides() {
         slidesContainer.getChildren().clear();
-        slideCards.clear();
-
         for (PresentationSlideItem slide : slides) {
             PresentationSlideCard card = new PresentationSlideCard(
                     slide,
-                    this::removeSlide,
-                    this::duplicateSlide
+                    this::removeSlide
             );
 
-            slideCards.put(slide, card);
             slidesContainer.getChildren().add(card);
         }
     }
 
-    private void duplicateSlide(PresentationSlideItem source) {
-        int sourceIndex = slides.indexOf(source);
-
-        if (sourceIndex < 0) {
-            return;
-        }
-
-        PresentationSlideItem copy = presentationTemplateService.duplicate(
-                source,
-                sourceIndex + 2
-        );
-
-        slides.add(sourceIndex + 1, copy);
-
-        renumberSlides();
-
-        renderSlides();
-        updateView();
-
-        log.info(
-                "Slide {} duplicado visualmente.",
-                source.slideNumber()
-        );
-    }
-
     private void removeSlide(PresentationSlideItem slide) {
-        PresentationSlideCard card = slideCards.remove(slide);
-
-        if (card == null) {
-            return;
-        }
-
         int index = slides.indexOf(slide);
 
-        slides.remove(slide);
-        slidesContainer.getChildren().remove(card);
+        if (index < 0) {
+            return;
+        }
 
+        slides.remove(index);
+        removedSlideIndexes.add(slide.generatedSlideIndex());
         removalHistory.push(new RemovedSlide(slide, index));
 
         renumberSlides();
         renderSlides();
         updateView();
 
-        log.info("Slide {} removido visualmente.", slide.slideNumber());
+        log.info("Slide gerado {} removido visualmente.", slide.generatedSlideIndex() + 1);
     }
 
     @FXML
@@ -226,14 +178,15 @@ public final class PresentationPreviewController {
         int insertionIndex = Math.min(removedSlide.index(), slides.size());
 
         slides.add(insertionIndex, removedSlide.slide());
+        removedSlideIndexes.remove(removedSlide.slide().generatedSlideIndex());
 
         renumberSlides();
         renderSlides();
         updateView();
 
         log.info(
-                "Remoção do slide {} desfeita.",
-                removedSlide.slide().sourceSlideNumber()
+                "Remoção do slide gerado {} desfeita.",
+                removedSlide.slide().generatedSlideIndex() + 1
         );
     }
 
@@ -243,17 +196,14 @@ public final class PresentationPreviewController {
         for (int index = 0; index < slides.size(); index++) {
             PresentationSlideItem slide = slides.get(index);
 
-            renumbered.add(
-                    new PresentationSlideItem(
-                            slide.id(),
-                            index + 1,
-                            slide.sourceSlideNumber(),
-                            slide.copyNumber(),
-                            slide.title(),
-                            slide.description(),
-                            slide.thumbnailPath()
-                    )
-            );
+            renumbered.add(new PresentationSlideItem(
+                    slide.id(),
+                    index + 1,
+                    slide.generatedSlideIndex(),
+                    slide.title(),
+                    slide.description(),
+                    slide.thumbnailPath()
+            ));
         }
 
         slides.clear();
@@ -285,18 +235,11 @@ public final class PresentationPreviewController {
 
         emptyState.setVisible(empty);
         emptyState.setManaged(empty);
-
         slidesContainer.setVisible(!empty);
         slidesContainer.setManaged(!empty);
     }
 
     private int getCropCount() {
-        var workspace = ApplicationService.getInstance().getWorkspace();
-
-        if (workspace == null || workspace.getTemporaryDirectory() == null) {
-            return 0;
-        }
-
         Path cropsDirectory = workspace.getTemporaryDirectory().resolve("crops");
 
         if (!cropsDirectory.toFile().isDirectory()) {
@@ -321,10 +264,60 @@ public final class PresentationPreviewController {
 
     @FXML
     private void onFinish() {
-        PopupService.getInstance().information(
-                "Download da apresentação",
-                "O botão já representa o fluxo final. A criação do PPTX com Apache POI será conectada na próxima etapa."
+        FileChooser chooser = new FileChooser();
+
+        chooser.setTitle("Salvar apresentação final");
+        chooser.setInitialFileName("apresentacao-final.pptx");
+        chooser.getExtensionFilters().setAll(
+                new FileChooser.ExtensionFilter(
+                        "Apresentação do PowerPoint",
+                        "*.pptx"
+                )
         );
+
+        File selectedFile = chooser.showSaveDialog(
+                rootPane.getScene().getWindow()
+        );
+
+        if (selectedFile == null) {
+            return;
+        }
+
+        Path destinationPath = ensurePptxExtension(
+                selectedFile.toPath()
+        );
+
+        try {
+            presentationGenerationService.exportWithoutSlides(
+                    generatedPresentationPath,
+                    Set.copyOf(removedSlideIndexes),
+                    destinationPath
+            );
+
+            PopupService.getInstance().success(
+                    "Apresentação salva",
+                    "O arquivo foi criado em:\n\n" + destinationPath.toAbsolutePath()
+            );
+        } catch (IOException exception) {
+            log.error("Não foi possível salvar a apresentação final.", exception);
+
+            PopupService.getInstance().error(
+                    "Erro ao salvar apresentação",
+                    exception.getMessage() == null
+                            ? "Não foi possível gravar o arquivo PowerPoint."
+                            : exception.getMessage()
+            );
+        }
+    }
+
+    private Path ensurePptxExtension(Path path) {
+        String fileName = path.getFileName().toString();
+
+        if (fileName.toLowerCase().endsWith(".pptx")) {
+            return path;
+        }
+
+        return path.resolveSibling(fileName + ".pptx");
     }
 
     private record RemovedSlide(

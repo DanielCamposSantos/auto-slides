@@ -7,4 +7,8 @@ public record PageCropConfig(
         String sourceImage,
         List<CropAreaConfig> selections
 ) {
+
+    public PageCropConfig {
+        selections = List.copyOf(selections);
+    }
 }

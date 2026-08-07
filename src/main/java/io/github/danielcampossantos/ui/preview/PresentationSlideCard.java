@@ -12,30 +12,23 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import lombok.Getter;
 import org.kordamp.ikonli.javafx.FontIcon;
-import org.kordamp.ikonli.materialdesign2.MaterialDesignC;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignD;
 
 import java.util.function.Consumer;
 
 public final class PresentationSlideCard extends HBox {
 
-    @Getter
     private final PresentationSlideItem item;
 
     private final Consumer<PresentationSlideItem> removeAction;
 
-    private final Consumer<PresentationSlideItem> duplicateAction;
-
     public PresentationSlideCard(
             PresentationSlideItem item,
-            Consumer<PresentationSlideItem> removeAction,
-            Consumer<PresentationSlideItem> duplicateAction
+            Consumer<PresentationSlideItem> removeAction
     ) {
         this.item = item;
         this.removeAction = removeAction;
-        this.duplicateAction = duplicateAction;
 
         initialize();
     }
@@ -48,15 +41,20 @@ public final class PresentationSlideCard extends HBox {
 
         StackPane slidePreview = createSlidePreview();
         VBox information = createInformation();
-        VBox actions = createActions();
+        Button removeButton = createRemoveButton();
 
         HBox.setHgrow(information, Priority.ALWAYS);
 
-        getChildren().addAll(slidePreview, information, actions);
+        getChildren().addAll(
+                slidePreview,
+                information,
+                removeButton
+        );
     }
 
     private StackPane createSlidePreview() {
         StackPane preview = new StackPane();
+
         preview.setPrefSize(420, 236);
         preview.setMinSize(420, 236);
         preview.setMaxSize(420, 236);
@@ -81,7 +79,10 @@ public final class PresentationSlideCard extends HBox {
             preview.getChildren().add(imageView);
         }
 
-        Label numberBadge = new Label(String.valueOf(item.slideNumber()));
+        Label numberBadge = new Label(
+                String.valueOf(item.slideNumber())
+        );
+
         numberBadge.getStyleClass().add("slide-number-badge");
 
         StackPane.setAlignment(numberBadge, Pos.BOTTOM_RIGHT);
@@ -94,6 +95,7 @@ public final class PresentationSlideCard extends HBox {
 
     private VBox createInformation() {
         VBox information = new VBox(8);
+
         information.setAlignment(Pos.CENTER_LEFT);
 
         Label title = new Label(item.title());
@@ -103,42 +105,16 @@ public final class PresentationSlideCard extends HBox {
         description.setWrapText(true);
         description.getStyleClass().add("slide-card-description");
 
-        String statusText = item.copyNumber() == 1
-                ? "Slide original do template"
-                : "Cópia do slide " + item.sourceSlideNumber();
-
-        Label status = new Label(statusText);
+        Label status = new Label("Slide pronto para download");
         status.getStyleClass().add("slide-card-status");
 
-        information.getChildren().addAll(title, description, status);
+        information.getChildren().addAll(
+                title,
+                description,
+                status
+        );
 
         return information;
-    }
-
-    private VBox createActions() {
-        VBox actions = new VBox(10);
-        actions.setAlignment(Pos.CENTER);
-
-        Button duplicateButton = createDuplicateButton();
-        Button removeButton = createRemoveButton();
-
-        actions.getChildren().addAll(duplicateButton, removeButton);
-
-        return actions;
-    }
-
-    private Button createDuplicateButton() {
-        FontIcon icon = new FontIcon(MaterialDesignC.CONTENT_COPY);
-        icon.setIconSize(20);
-
-        Button button = new Button();
-        button.setGraphic(icon);
-        button.setCursor(Cursor.HAND);
-        button.setFocusTraversable(false);
-        button.getStyleClass().add("slide-duplicate-button");
-        button.setOnAction(event -> duplicateAction.accept(item));
-
-        return button;
     }
 
     private Button createRemoveButton() {
@@ -146,6 +122,7 @@ public final class PresentationSlideCard extends HBox {
         icon.setIconSize(21);
 
         Button button = new Button();
+
         button.setGraphic(icon);
         button.setCursor(Cursor.HAND);
         button.setFocusTraversable(false);

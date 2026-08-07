@@ -8,17 +8,17 @@ import io.github.danielcampossantos.domain.template.TemplateSlot;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Comparator;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public final class TemplateLayoutService {
 
     private final TemplatePreferencesService templatePreferencesService = TemplatePreferencesService.getInstance();
-
     private final TemplateLayoutStorageService templateLayoutStorageService = new TemplateLayoutStorageService();
 
     private TemplateLayout layout;
-
     private Path loadedLayoutPath;
 
     public TemplateLayout load() throws IOException {
@@ -35,13 +35,6 @@ public final class TemplateLayoutService {
         loadedLayoutPath = layoutPath;
 
         return layout;
-    }
-
-    public void reload() throws IOException {
-        layout = null;
-        loadedLayoutPath = null;
-
-        load();
     }
 
     public List<TemplateSlide> getSlides() throws IOException {
@@ -72,55 +65,70 @@ public final class TemplateLayoutService {
             SelectionDestination requested,
             List<SelectionAssignment> existingAssignments
     ) {
-        List<SelectionAssignment> orderedAssignments = existingAssignments.stream()
-                .sorted(
-                        Comparator.comparingInt(
-                                        (SelectionAssignment assignment) ->
-                                                assignment.page().pdfNumber()
-                                )
-                                .thenComparingInt(
-                                        assignment ->
-                                                assignment.page().pageNumber()
-                                )
-                                .thenComparingInt(
-                                        SelectionAssignment::selectionOrder
-                                )
-                )
-                .toList();
-
-        long previousUses = orderedAssignments.stream()
+        long previousUses = existingAssignments.stream()
                 .map(SelectionAssignment::destination)
-                .filter(destination ->
-                        destination.slideId().equals(requested.slideId())
-                )
-                .filter(destination ->
-                        destination.slotId().equals(requested.slotId())
-                )
+                .filter(destination -> destination.slideId().equals(requested.slideId()))
+                .filter(destination -> destination.slotId().equals(requested.slotId()))
                 .count();
 
-        int slideInstance = Math.toIntExact(previousUses) + 1;
-
-        return new SelectionDestination(
-                requested.slideId(),
-                requested.sourceSlideNumber(),
-                slideInstance,
-                requested.slideTitle(),
-                requested.slotId(),
-                requested.slotLabel(),
-                requested.slotShapeName(),
-                requested.x(),
-                requested.y(),
-                requested.width(),
-                requested.height(),
-                requested.fitMode()
+        return withInstance(
+                requested,
+                Math.toIntExact(previousUses) + 1
         );
     }
 
-    public boolean isAvailable(
-            TemplateSlide slide,
-            TemplateSlot slot,
+    public List<SelectionAssignment> normalizeAssignments(
             List<SelectionAssignment> assignments
     ) {
-        return true;
+        List<SelectionAssignment> orderedAssignments = assignments.stream()
+                .sorted(SelectionAssignment.order())
+                .toList();
+
+        Map<DestinationKey, Integer> usages = new LinkedHashMap<>();
+        List<SelectionAssignment> normalized = new ArrayList<>();
+
+        for (SelectionAssignment assignment : orderedAssignments) {
+            SelectionDestination destination = assignment.destination();
+            DestinationKey key = new DestinationKey(
+                    destination.slideId(),
+                    destination.slotId()
+            );
+
+            int instance = usages.merge(key, 1, Integer::sum);
+
+            normalized.add(new SelectionAssignment(
+                    assignment.area(),
+                    withInstance(destination, instance),
+                    assignment.selectionOrder()
+            ));
+        }
+
+        return List.copyOf(normalized);
+    }
+
+    private SelectionDestination withInstance(
+            SelectionDestination destination,
+            int instance
+    ) {
+        return new SelectionDestination(
+                destination.slideId(),
+                destination.sourceSlideNumber(),
+                instance,
+                destination.slideTitle(),
+                destination.slotId(),
+                destination.slotLabel(),
+                destination.slotShapeName(),
+                destination.x(),
+                destination.y(),
+                destination.width(),
+                destination.height(),
+                destination.fitMode()
+        );
+    }
+
+    private record DestinationKey(
+            String slideId,
+            String slotId
+    ) {
     }
 }

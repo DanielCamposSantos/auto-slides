@@ -138,7 +138,7 @@ public final class TemplatePreferencesService {
             }
 
             return Optional.of(path);
-        } catch (InvalidPathException exception) {
+        } catch (InvalidPathException _) {
             clearTemplate();
 
             return Optional.empty();

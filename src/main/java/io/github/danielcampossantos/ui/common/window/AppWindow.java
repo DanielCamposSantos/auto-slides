@@ -17,7 +17,6 @@ public final class AppWindow extends StackPane {
 
     private final BorderPane frame;
 
-    @Getter
     private final StackPane contentHost;
 
     @Getter

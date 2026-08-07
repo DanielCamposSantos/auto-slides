@@ -10,17 +10,12 @@ public final class FXMLLoaderFactory {
     }
 
     public static FXMLLoader create(String resource) {
-
         URL url = FXMLLoaderFactory.class.getResource(resource);
 
         if (url == null) {
-
             throw new IllegalArgumentException("FXML não encontrado: " + resource);
-
         }
 
         return new FXMLLoader(url);
-
     }
-
 }

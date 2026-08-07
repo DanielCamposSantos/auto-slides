@@ -1,5 +1,6 @@
 package io.github.danielcampossantos.ui.navigation;
 
+import io.github.danielcampossantos.ui.common.fxml.FXMLLoaderFactory;
 import io.github.danielcampossantos.ui.common.window.AppWindow;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -37,22 +38,13 @@ public final class SceneManager {
 
     public void initialize(Stage stage) {
         this.stage = stage;
-
         window = new AppWindow(stage);
+
         Scene scene = new Scene(window);
-
         scene.setFill(Color.TRANSPARENT);
-
-        scene.getStylesheets().add(
-                Objects.requireNonNull(
-                        SceneManager.class.getResource("/ui/css/window.css")
-                ).toExternalForm()
-        );
-
-        scene.getStylesheets().add(
-                Objects.requireNonNull(
-                        SceneManager.class.getResource("/ui/css/popup.css")
-                ).toExternalForm()
+        scene.getStylesheets().addAll(
+                stylesheet("/ui/css/window.css"),
+                stylesheet("/ui/css/popup.css")
         );
 
         stage.setScene(scene);
@@ -68,47 +60,38 @@ public final class SceneManager {
         }
 
         window.setContent(view.root());
-        window.setTitle(sceneType.getTitle());
-
-        stage.setTitle(sceneType.getTitle());
+        window.setTitle(sceneType.title());
+        stage.setTitle(sceneType.title());
         stage.show();
     }
 
-    public void clear(SceneType sceneType) {
-        cache.remove(sceneType);
-    }
-
-    public void clearAll() {
-        cache.clear();
-    }
-
     private boolean shouldReload(SceneType sceneType) {
-        return sceneType == SceneType.AREA_SELECTION
-                || sceneType == SceneType.PRESENTATION_PREVIEW;
+        return switch (sceneType) {
+            case AREA_SELECTION, PRESENTATION_PREVIEW -> true;
+            default -> false;
+        };
     }
 
     private LoadedView loadView(SceneType sceneType) {
-        FXMLLoader loader = new FXMLLoader(
-                Objects.requireNonNull(
-                        SceneManager.class.getResource(sceneType.getFxml())
-                )
-        );
+        FXMLLoader loader = FXMLLoaderFactory.create(sceneType.fxml());
 
         try {
-            Parent root = loader.load();
-
-            return new LoadedView(root, loader.getController());
+            return new LoadedView(loader.load(), loader.getController());
         } catch (IOException exception) {
             throw new IllegalStateException(
-                    "Não foi possível carregar %s".formatted(sceneType.getFxml()),
+                    "Não foi possível carregar %s".formatted(sceneType.fxml()),
                     exception
             );
         }
     }
 
-    private record LoadedView(
-            Parent root,
-            Object controller
-    ) {
+    private String stylesheet(String resource) {
+        return Objects.requireNonNull(
+                SceneManager.class.getResource(resource),
+                "Stylesheet não encontrado: " + resource
+        ).toExternalForm();
+    }
+
+    private record LoadedView(Parent root, Object controller) {
     }
 }

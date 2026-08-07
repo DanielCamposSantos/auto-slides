@@ -18,42 +18,42 @@ import java.util.List;
 @Log4j2
 public final class ImageService {
 
-    private static final String OUTPUT_DIRECTORY = "crops";
-
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public List<Path> crop(Path temporaryDirectory, Path configPath) throws IOException {
-        SelectionConfig config = objectMapper.readValue(configPath.toFile(), SelectionConfig.class);
-        Path outputDirectory = temporaryDirectory.resolve(OUTPUT_DIRECTORY);
-
-        Files.createDirectories(outputDirectory);
+        SelectionConfig config = objectMapper.readValue(
+                configPath.toFile(),
+                SelectionConfig.class
+        );
 
         List<Path> generatedFiles = new ArrayList<>();
 
         for (PdfCropConfig pdf : config.pdfs()) {
-            generatedFiles.addAll(cropPdf(temporaryDirectory, outputDirectory, pdf));
+            generatedFiles.addAll(cropPdf(temporaryDirectory, pdf));
         }
 
-        log.info("{} recortes criados em {}", generatedFiles.size(), outputDirectory);
+        log.info("{} recortes criados em {}", generatedFiles.size(), temporaryDirectory.resolve("crops"));
 
         return List.copyOf(generatedFiles);
     }
 
-    private List<Path> cropPdf(Path temporaryDirectory, Path outputDirectory, PdfCropConfig pdf) throws IOException {
-        Path pdfDirectory = outputDirectory.resolve("pdf-" + pdf.pdfNumber());
-
-        Files.createDirectories(pdfDirectory);
-
+    private List<Path> cropPdf(
+            Path temporaryDirectory,
+            PdfCropConfig pdf
+    ) throws IOException {
         List<Path> generatedFiles = new ArrayList<>();
 
         for (PageCropConfig page : pdf.pages()) {
-            generatedFiles.addAll(cropPage(temporaryDirectory, pdfDirectory, page));
+            generatedFiles.addAll(cropPage(temporaryDirectory, page));
         }
 
         return generatedFiles;
     }
 
-    private List<Path> cropPage(Path temporaryDirectory, Path pdfDirectory, PageCropConfig page) throws IOException {
+    private List<Path> cropPage(
+            Path temporaryDirectory,
+            PageCropConfig page
+    ) throws IOException {
         Path sourcePath = temporaryDirectory.resolve(page.sourceImage());
 
         if (!Files.exists(sourcePath)) {
@@ -68,21 +68,20 @@ public final class ImageService {
 
         List<Path> generatedFiles = new ArrayList<>();
 
-        for (int index = 0; index < page.selections().size(); index++) {
-            CropAreaConfig selection = page.selections().get(index);
-            Path generatedPath = cropSelection(sourceImage, pdfDirectory, page.pageNumber(), index + 1, selection);
-
-            generatedFiles.add(generatedPath);
+        for (CropAreaConfig selection : page.selections()) {
+            generatedFiles.add(cropSelection(
+                    temporaryDirectory,
+                    sourceImage,
+                    selection
+            ));
         }
 
         return generatedFiles;
     }
 
     private Path cropSelection(
+            Path temporaryDirectory,
             BufferedImage sourceImage,
-            Path pdfDirectory,
-            int pageNumber,
-            int selectionNumber,
             CropAreaConfig selection
     ) throws IOException {
         validateBounds(sourceImage, selection);
@@ -94,18 +93,23 @@ public final class ImageService {
                 selection.height()
         );
 
-        String shortId = selection.id().toString().substring(0, 8);
-        String fileName = "pagina-%d-selecao-%03d-%s.png".formatted(pageNumber, selectionNumber, shortId);
-        Path destinationPath = pdfDirectory.resolve(fileName);
+        Path destinationPath = temporaryDirectory.resolve(selection.outputImage());
 
-        ImageIO.write(croppedImage, "PNG", destinationPath.toFile());
+        Files.createDirectories(destinationPath.getParent());
+
+        if (!ImageIO.write(croppedImage, "PNG", destinationPath.toFile())) {
+            throw new IOException("Não foi possível gravar o recorte: " + destinationPath);
+        }
 
         log.info("Recorte criado: {}", destinationPath);
 
         return destinationPath;
     }
 
-    private void validateBounds(BufferedImage image, CropAreaConfig selection) {
+    private void validateBounds(
+            BufferedImage image,
+            CropAreaConfig selection
+    ) {
         boolean invalidPosition = selection.x() < 0 || selection.y() < 0;
         boolean invalidSize = selection.width() <= 0 || selection.height() <= 0;
         boolean exceedsWidth = selection.x() + selection.width() > image.getWidth();

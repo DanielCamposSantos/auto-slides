@@ -6,8 +6,7 @@ import java.util.UUID;
 public record PresentationSlideItem(
         UUID id,
         int slideNumber,
-        int sourceSlideNumber,
-        int copyNumber,
+        int generatedSlideIndex,
         String title,
         String description,
         Path thumbnailPath

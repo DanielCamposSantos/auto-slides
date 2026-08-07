@@ -30,7 +30,11 @@ public final class SelectionConfigService {
             Workspace workspace,
             List<SelectionAssignment> assignments
     ) throws IOException {
-        SelectionConfig config = createConfig(workspace, assignments);
+        List<SelectionAssignment> orderedAssignments = assignments.stream()
+                .sorted(SelectionAssignment.order())
+                .toList();
+
+        SelectionConfig config = createConfig(workspace, orderedAssignments);
         Path configPath = workspace.getTemporaryDirectory().resolve(CONFIG_FILE_NAME);
 
         objectMapper.writeValue(configPath.toFile(), config);
@@ -56,15 +60,16 @@ public final class SelectionConfigService {
         for (Map.Entry<Integer, List<SelectionAssignment>> pdfEntry : assignmentsByPdf.entrySet()) {
             int pdfNumber = pdfEntry.getKey();
             String fileName = getPdfFileName(workspace, pdfNumber);
-            List<PageCropConfig> pageConfigs = createPageConfigs(pdfEntry.getValue());
+            List<PageCropConfig> pageConfigs = createPageConfigs(pdfNumber, pdfEntry.getValue());
 
             pdfConfigs.add(new PdfCropConfig(pdfNumber, fileName, pageConfigs));
         }
 
-        return new SelectionConfig(pdfConfigs);
+        return new SelectionConfig(List.copyOf(pdfConfigs));
     }
 
     private List<PageCropConfig> createPageConfigs(
+            int pdfNumber,
             List<SelectionAssignment> assignments
     ) throws IOException {
         Map<PdfPage, List<SelectionAssignment>> assignmentsByPage = assignments.stream()
@@ -82,7 +87,7 @@ public final class SelectionConfigService {
 
             List<CropAreaConfig> cropAreas = pageEntry.getValue()
                     .stream()
-                    .map(assignment -> convertToSourcePixels(assignment, sourceImage))
+                    .map(assignment -> convertToSourcePixels(pdfNumber, page, assignment, sourceImage))
                     .toList();
 
             pageConfigs.add(new PageCropConfig(
@@ -92,10 +97,12 @@ public final class SelectionConfigService {
             ));
         }
 
-        return pageConfigs;
+        return List.copyOf(pageConfigs);
     }
 
     private CropAreaConfig convertToSourcePixels(
+            int pdfNumber,
+            PdfPage page,
             SelectionAssignment assignment,
             BufferedImage sourceImage
     ) {
@@ -120,12 +127,21 @@ public final class SelectionConfigService {
         width = Math.clamp(width, 1, sourceImage.getWidth() - x);
         height = Math.clamp(height, 1, sourceImage.getHeight() - y);
 
+        String outputImage = "crops/pdf-%d/pagina-%d-selecao-%04d-%s.png".formatted(
+                pdfNumber,
+                page.pageNumber(),
+                assignment.selectionOrder(),
+                area.id().toString().substring(0, 8)
+        );
+
         return new CropAreaConfig(
                 area.id(),
+                assignment.selectionOrder(),
                 x,
                 y,
                 width,
                 height,
+                outputImage,
                 assignment.destination()
         );
     }
