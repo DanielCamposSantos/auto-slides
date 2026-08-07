@@ -13,15 +13,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
 
 public final class PresentationTemplateService {
 
     private static final int THUMBNAIL_WIDTH = 840;
-
     private static final int THUMBNAIL_HEIGHT = 472;
 
     public PresentationTemplateInfo inspect(Path templatePath) throws IOException {
@@ -41,22 +38,26 @@ public final class PresentationTemplateService {
                     pageSize.getHeight()
             );
         } catch (RuntimeException exception) {
-            throw new IOException("O arquivo selecionado não é um template PowerPoint válido.", exception);
+            throw new IOException(
+                    "O arquivo selecionado não é uma apresentação PowerPoint válida.",
+                    exception
+            );
         }
     }
 
     public List<PresentationSlideItem> readSlides(
-            Path templatePath,
+            Path presentationPath,
             Path temporaryDirectory
     ) throws IOException {
-        validatePath(templatePath);
+        validatePath(presentationPath);
 
-        Path thumbnailDirectory = temporaryDirectory.resolve("template-thumbnails");
+        Path thumbnailDirectory = temporaryDirectory.resolve("presentation-thumbnails");
 
+        clearDirectory(thumbnailDirectory);
         Files.createDirectories(thumbnailDirectory);
 
         try (
-                InputStream input = Files.newInputStream(templatePath);
+                InputStream input = Files.newInputStream(presentationPath);
                 XMLSlideShow presentation = new XMLSlideShow(input)
         ) {
             List<PresentationSlideItem> slides = new ArrayList<>();
@@ -75,8 +76,7 @@ public final class PresentationTemplateService {
                 slides.add(new PresentationSlideItem(
                         UUID.randomUUID(),
                         slideNumber,
-                        slideNumber,
-                        1,
+                        index,
                         resolveTitle(slide, slideNumber),
                         resolveDescription(slide),
                         thumbnailPath
@@ -85,23 +85,11 @@ public final class PresentationTemplateService {
 
             return List.copyOf(slides);
         } catch (RuntimeException exception) {
-            throw new IOException("Não foi possível ler os slides do template selecionado.", exception);
+            throw new IOException(
+                    "Não foi possível renderizar a apresentação gerada.",
+                    exception
+            );
         }
-    }
-
-    public PresentationSlideItem duplicate(
-            PresentationSlideItem source,
-            int newSlideNumber
-    ) {
-        return new PresentationSlideItem(
-                UUID.randomUUID(),
-                newSlideNumber,
-                source.sourceSlideNumber(),
-                source.copyNumber() + 1,
-                source.title() + " — cópia " + (source.copyNumber() + 1),
-                source.description(),
-                source.thumbnailPath()
-        );
     }
 
     private Path renderThumbnail(
@@ -131,14 +119,23 @@ public final class PresentationTemplateService {
                     RenderingHints.VALUE_RENDER_QUALITY
             );
 
+            graphics.setRenderingHint(
+                    RenderingHints.KEY_INTERPOLATION,
+                    RenderingHints.VALUE_INTERPOLATION_BICUBIC
+            );
+
             graphics.setPaint(Color.WHITE);
-            graphics.fill(new Rectangle2D.Double(0, 0, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT));
+            graphics.fill(new Rectangle2D.Double(
+                    0,
+                    0,
+                    THUMBNAIL_WIDTH,
+                    THUMBNAIL_HEIGHT
+            ));
 
             double scaleX = THUMBNAIL_WIDTH / pageSize.getWidth();
             double scaleY = THUMBNAIL_HEIGHT / pageSize.getHeight();
 
             graphics.scale(scaleX, scaleY);
-
             slide.draw(graphics);
         } finally {
             graphics.dispose();
@@ -148,26 +145,40 @@ public final class PresentationTemplateService {
                 "slide-%03d.png".formatted(slideNumber)
         );
 
-        ImageIO.write(image, "PNG", thumbnailPath.toFile());
+        if (!ImageIO.write(image, "PNG", thumbnailPath.toFile())) {
+            throw new IOException("Não foi possível gerar a miniatura " + thumbnailPath);
+        }
 
         return thumbnailPath;
     }
 
-    private void validatePath(Path templatePath) throws IOException {
-        if (templatePath == null) {
-            throw new IOException("Nenhum template foi informado.");
+    private void clearDirectory(Path directory) throws IOException {
+        if (!Files.exists(directory)) {
+            return;
         }
 
-        if (!Files.isRegularFile(templatePath)) {
-            throw new IOException("O arquivo do template não existe.");
+        try (var paths = Files.walk(directory)) {
+            for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(path);
+            }
+        }
+    }
+
+    private void validatePath(Path presentationPath) throws IOException {
+        if (presentationPath == null) {
+            throw new IOException("Nenhuma apresentação foi informada.");
         }
 
-        String fileName = templatePath.getFileName()
+        if (!Files.isRegularFile(presentationPath)) {
+            throw new IOException("O arquivo da apresentação não existe: " + presentationPath);
+        }
+
+        String fileName = presentationPath.getFileName()
                 .toString()
                 .toLowerCase(Locale.ROOT);
 
         if (!fileName.endsWith(".pptx")) {
-            throw new IOException("Selecione um arquivo PowerPoint no formato .pptx.");
+            throw new IOException("O arquivo deve estar no formato PowerPoint .pptx.");
         }
     }
 
@@ -185,7 +196,7 @@ public final class PresentationTemplateService {
         int shapeCount = slide.getShapes().size();
 
         return shapeCount == 1
-                ? "1 elemento encontrado no template."
-                : shapeCount + " elementos encontrados no template.";
+                ? "1 elemento na apresentação gerada."
+                : shapeCount + " elementos na apresentação gerada.";
     }
 }

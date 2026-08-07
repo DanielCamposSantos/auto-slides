@@ -7,4 +7,8 @@ public record PdfCropConfig(
         String fileName,
         List<PageCropConfig> pages
 ) {
+
+    public PdfCropConfig {
+        pages = List.copyOf(pages);
+    }
 }

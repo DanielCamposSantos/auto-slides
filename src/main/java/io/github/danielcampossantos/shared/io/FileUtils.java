@@ -1,55 +1,24 @@
 package io.github.danielcampossantos.shared.io;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.stream.Stream;
+import java.util.Comparator;
 
-public class FileUtils {
+public final class FileUtils {
+
     private FileUtils() {
-        /* This utility class should not be instantiated */
     }
 
-
-    public static List<File> getPdfs() throws IOException {
-        ClassLoader classLoader = FileUtils.class.getClassLoader();
-        URL resourceUrl = classLoader.getResource("pdfs");
-
-        if (resourceUrl == null) {
-            throw new IOException("Pasta pdfs nao encontrada");
-        }
-
-        try {
-            URI uri = resourceUrl.toURI();
-            Path pastaPdfs = Paths.get(uri);
-
-            try (Stream<Path> arquivos = Files.list(pastaPdfs)) {
-                return arquivos
-                        .filter(Files::isRegularFile)
-                        .filter(p -> p.toString().toLowerCase().endsWith(".pdf"))
-                        .map(Path::toFile)
-                        .sorted()
-                        .toList();
-            }
-        } catch (URISyntaxException e) {
-            throw new IOException(e);
-        }
-    }
-
-    public static void deletarDiretorioRecursivo(Path caminho) throws IOException {
-        if (caminho == null || !Files.exists(caminho)) {
+    public static void deleteRecursively(Path path) throws IOException {
+        if (path == null || Files.notExists(path)) {
             return;
         }
-        try (Stream<Path> caminhos = Files.walk(caminho)) {
-            caminhos.sorted((p1, p2) -> p2.compareTo(p1))
-                    .map(Path::toFile)
-                    .forEach(File::delete);
+
+        try (var paths = Files.walk(path)) {
+            for (Path current : paths.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(current);
+            }
         }
     }
 }

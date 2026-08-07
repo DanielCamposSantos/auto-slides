@@ -1,10 +1,5 @@
 package io.github.danielcampossantos.ui.navigation;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@Getter
-@RequiredArgsConstructor
 public enum SceneType {
 
     HOME(
@@ -28,6 +23,18 @@ public enum SceneType {
     );
 
     private final String fxml;
-
     private final String title;
+
+    SceneType(String fxml, String title) {
+        this.fxml = fxml;
+        this.title = title;
+    }
+
+    public String fxml() {
+        return fxml;
+    }
+
+    public String title() {
+        return title;
+    }
 }

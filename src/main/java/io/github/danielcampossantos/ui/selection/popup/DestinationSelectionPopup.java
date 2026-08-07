@@ -26,7 +26,6 @@ import lombok.extern.log4j.Log4j2;
 import java.io.IOException;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 @Log4j2
 public final class DestinationSelectionPopup {
@@ -41,14 +40,11 @@ public final class DestinationSelectionPopup {
     }
 
     public void show(
-            Predicate<SelectionDestination> availabilityValidator,
             Consumer<SelectionDestination> onConfirm,
             Runnable onCancel
     ) {
         try {
-            List<TemplateSlide> slides = templateLayoutService.getSlides();
-
-            showPopup(slides, availabilityValidator, onConfirm, onCancel);
+            showPopup(templateLayoutService.getSlides(), onConfirm, onCancel);
         } catch (IOException exception) {
             log.error("Não foi possível carregar a configuração do template.", exception);
 
@@ -63,12 +59,10 @@ public final class DestinationSelectionPopup {
 
     private void showPopup(
             List<TemplateSlide> slides,
-            Predicate<SelectionDestination> availabilityValidator,
             Consumer<SelectionDestination> onConfirm,
             Runnable onCancel
     ) {
         AppWindow window = SceneManager.getInstance().getWindow();
-
         window.beginOverlay();
 
         StackPane overlay = new StackPane();
@@ -107,12 +101,6 @@ public final class DestinationSelectionPopup {
         slotComboBox.setDisable(true);
         slotComboBox.getStyleClass().add("destination-combo-box");
 
-        Label validationLabel = new Label();
-        validationLabel.setWrapText(true);
-        validationLabel.setVisible(false);
-        validationLabel.setManaged(false);
-        validationLabel.getStyleClass().add("destination-validation-label");
-
         Button cancelButton = new Button("Cancelar");
         cancelButton.getStyleClass().add("destination-cancel-button");
 
@@ -126,52 +114,20 @@ public final class DestinationSelectionPopup {
         slideComboBox.valueProperty().addListener((observable, oldSlide, selectedSlide) -> {
             slotComboBox.getItems().clear();
             slotComboBox.setValue(null);
+            slotComboBox.setDisable(selectedSlide == null);
 
-            boolean hasSlide = selectedSlide != null;
-
-            slotComboBox.setDisable(!hasSlide);
-
-            if (hasSlide) {
+            if (selectedSlide != null) {
                 slotComboBox.getItems().setAll(selectedSlide.slots());
             }
 
             confirmButton.setDisable(true);
-            hideValidation(validationLabel);
         });
 
-        slotComboBox.valueProperty().addListener((observable, oldSlot, selectedSlot) -> {
-            TemplateSlide selectedSlide = slideComboBox.getValue();
+        slotComboBox.valueProperty().addListener((observable, oldSlot, selectedSlot) ->
+                confirmButton.setDisable(slideComboBox.getValue() == null || selectedSlot == null)
+        );
 
-            if (selectedSlide == null || selectedSlot == null) {
-                confirmButton.setDisable(true);
-                return;
-            }
-
-            SelectionDestination destination = templateLayoutService.createDestination(
-                    selectedSlide,
-                    selectedSlot
-            );
-
-            boolean available = availabilityValidator.test(destination);
-
-            confirmButton.setDisable(!available);
-
-            if (available) {
-                hideValidation(validationLabel);
-            } else {
-                showValidation(
-                        validationLabel,
-                        "Esse espaço já atingiu o limite de imagens permitido."
-                );
-            }
-        });
-
-        cancelButton.setOnAction(event -> close(
-                window,
-                overlay,
-                card,
-                onCancel
-        ));
+        cancelButton.setOnAction(event -> close(window, overlay, card, onCancel));
 
         confirmButton.setOnAction(event -> {
             TemplateSlide slide = slideComboBox.getValue();
@@ -181,17 +137,8 @@ public final class DestinationSelectionPopup {
                 return;
             }
 
-            SelectionDestination destination = templateLayoutService.createDestination(
-                    slide,
-                    slot
-            );
-
-            close(
-                    window,
-                    overlay,
-                    card,
-                    () -> onConfirm.accept(destination)
-            );
+            SelectionDestination destination = templateLayoutService.createDestination(slide, slot);
+            close(window, overlay, card, () -> onConfirm.accept(destination));
         });
 
         card.getChildren().addAll(
@@ -201,28 +148,14 @@ public final class DestinationSelectionPopup {
                 slideComboBox,
                 slotLabel,
                 slotComboBox,
-                validationLabel,
                 actions
         );
 
         overlay.getChildren().addAll(shield, card);
-
         StackPane.setAlignment(card, Pos.CENTER);
-
         window.getOverlayHost().getChildren().setAll(overlay);
 
         playOpenAnimation(overlay, card);
-    }
-
-    private void showValidation(Label label, String message) {
-        label.setText(message);
-        label.setVisible(true);
-        label.setManaged(true);
-    }
-
-    private void hideValidation(Label label) {
-        label.setVisible(false);
-        label.setManaged(false);
     }
 
     private void playOpenAnimation(StackPane overlay, VBox card) {
@@ -267,12 +200,10 @@ public final class DestinationSelectionPopup {
         scale.setInterpolator(Interpolator.EASE_IN);
 
         ParallelTransition transition = new ParallelTransition(fade, scale);
-
         transition.setOnFinished(event -> {
             window.endOverlay();
             afterClose.run();
         });
-
         transition.play();
     }
 }

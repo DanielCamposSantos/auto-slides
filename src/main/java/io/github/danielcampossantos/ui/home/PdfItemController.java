@@ -5,7 +5,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -26,9 +25,6 @@ public final class PdfItemController {
 
     @FXML
     private Label fileNameLabel;
-
-    @FXML
-    private FontIcon deleteIcon;
 
     private PdfFileItem currentItem;
 
