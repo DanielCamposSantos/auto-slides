@@ -4,11 +4,12 @@ import io.github.danielcampossantos.domain.template.SlotFitMode;
 
 public record SelectionDestination(
         String slideId,
-        int slideNumber,
-        int slideCopyNumber,
+        int sourceSlideNumber,
+        int slideInstance,
         String slideTitle,
         String slotId,
         String slotLabel,
+        String slotShapeName,
         double x,
         double y,
         double width,

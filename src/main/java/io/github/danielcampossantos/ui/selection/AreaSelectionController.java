@@ -29,6 +29,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import lombok.extern.log4j.Log4j2;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -86,10 +87,14 @@ public final class AreaSelectionController {
 
             double direction = Math.signum(distance);
             double effectiveDistance = Math.abs(distance) - AUTO_SCROLL_DEAD_ZONE;
-            double speed = Math.min(effectiveDistance * AUTO_SCROLL_SPEED_FACTOR, AUTO_SCROLL_MAX_SPEED);
-            double pixelMovement = direction * speed * elapsedSeconds;
+            double speed = Math.min(
+                    effectiveDistance * AUTO_SCROLL_SPEED_FACTOR,
+                    AUTO_SCROLL_MAX_SPEED
+            );
 
-            scrollVerticallyByPixels(pixelMovement);
+            scrollVerticallyByPixels(
+                    direction * speed * elapsedSeconds
+            );
         }
 
         private void updateAutoScrollCursor(double distance) {
@@ -135,7 +140,7 @@ public final class AreaSelectionController {
 
     private Workspace workspace;
     private int selectionCount;
-    private int nextSelectionNumber = 1;
+    private int nextSelectionOrder = 1;
     private boolean autoScrollActive;
     private double autoScrollAnchorY;
     private double autoScrollPointerY;
@@ -157,10 +162,25 @@ public final class AreaSelectionController {
     }
 
     private void initializeMouseNavigation() {
-        pagesScrollPane.addEventFilter(MouseEvent.MOUSE_PRESSED, this::handleNavigationPressed);
-        pagesScrollPane.addEventFilter(MouseEvent.MOUSE_DRAGGED, this::handleNavigationDragged);
-        pagesScrollPane.addEventFilter(MouseEvent.MOUSE_RELEASED, this::handleNavigationReleased);
-        pagesScrollPane.addEventFilter(MouseEvent.MOUSE_MOVED, this::handleNavigationMoved);
+        pagesScrollPane.addEventFilter(
+                MouseEvent.MOUSE_PRESSED,
+                this::handleNavigationPressed
+        );
+
+        pagesScrollPane.addEventFilter(
+                MouseEvent.MOUSE_DRAGGED,
+                this::handleNavigationDragged
+        );
+
+        pagesScrollPane.addEventFilter(
+                MouseEvent.MOUSE_RELEASED,
+                this::handleNavigationReleased
+        );
+
+        pagesScrollPane.addEventFilter(
+                MouseEvent.MOUSE_MOVED,
+                this::handleNavigationMoved
+        );
 
         pagesScrollPane.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.ESCAPE && autoScrollActive) {
@@ -210,6 +230,7 @@ public final class AreaSelectionController {
     private void handleNavigationDragged(MouseEvent event) {
         if (autoScrollActive) {
             autoScrollPointerY = event.getSceneY();
+
             event.consume();
             return;
         }
@@ -220,19 +241,24 @@ public final class AreaSelectionController {
 
         double horizontalDelta = event.getSceneX() - rightDragStartX;
         double verticalDelta = event.getSceneY() - rightDragStartY;
+
         double horizontalScrollableDistance = getHorizontalScrollableDistance();
         double verticalScrollableDistance = getVerticalScrollableDistance();
 
         if (horizontalScrollableDistance > 0) {
             double horizontalMovement = horizontalDelta * RIGHT_DRAG_SPEED_MULTIPLIER;
-            double horizontalValue = rightDragInitialHorizontalValue - horizontalMovement / horizontalScrollableDistance;
+
+            double horizontalValue = rightDragInitialHorizontalValue
+                    - horizontalMovement / horizontalScrollableDistance;
 
             pagesScrollPane.setHvalue(clamp(horizontalValue));
         }
 
         if (verticalScrollableDistance > 0) {
             double verticalMovement = verticalDelta * RIGHT_DRAG_SPEED_MULTIPLIER;
-            double verticalValue = rightDragInitialVerticalValue - verticalMovement / verticalScrollableDistance;
+
+            double verticalValue = rightDragInitialVerticalValue
+                    - verticalMovement / verticalScrollableDistance;
 
             pagesScrollPane.setVvalue(clamp(verticalValue));
         }
@@ -257,6 +283,7 @@ public final class AreaSelectionController {
         }
 
         autoScrollPointerY = event.getSceneY();
+
         event.consume();
     }
 
@@ -266,12 +293,15 @@ public final class AreaSelectionController {
         autoScrollPointerY = event.getSceneY();
 
         pagesScrollPane.setCursor(Cursor.V_RESIZE);
+
         autoScrollTimer.start();
     }
 
     private void stopAutoScroll() {
         autoScrollActive = false;
+
         autoScrollTimer.stop();
+
         pagesScrollPane.setCursor(Cursor.DEFAULT);
     }
 
@@ -281,8 +311,14 @@ public final class AreaSelectionController {
             return 0;
         }
 
-        double contentWidth = pagesScrollPane.getContent().getBoundsInLocal().getWidth();
-        double viewportWidth = pagesScrollPane.getViewportBounds().getWidth();
+        double contentWidth = pagesScrollPane
+                .getContent()
+                .getBoundsInLocal()
+                .getWidth();
+
+        double viewportWidth = pagesScrollPane
+                .getViewportBounds()
+                .getWidth();
 
         return Math.max(0, contentWidth - viewportWidth);
     }
@@ -292,8 +328,14 @@ public final class AreaSelectionController {
             return 0;
         }
 
-        double contentHeight = pagesScrollPane.getContent().getBoundsInLocal().getHeight();
-        double viewportHeight = pagesScrollPane.getViewportBounds().getHeight();
+        double contentHeight = pagesScrollPane
+                .getContent()
+                .getBoundsInLocal()
+                .getHeight();
+
+        double viewportHeight = pagesScrollPane
+                .getViewportBounds()
+                .getHeight();
 
         return Math.max(0, contentHeight - viewportHeight);
     }
@@ -309,15 +351,23 @@ public final class AreaSelectionController {
         for (PdfPage page : workspace.getPages()) {
             PdfPageView pageView = new PdfPageView(page);
 
-            pageView.setOnSelectionCreated(area -> onSelectionDrawn(pageView, area));
-            pageView.setOnSelectionRemoved(this::onSelectionRemoved);
+            pageView.setOnSelectionCreated(
+                    area -> onSelectionDrawn(pageView, area)
+            );
+
+            pageView.setOnSelectionRemoved(
+                    this::onSelectionRemoved
+            );
 
             pageViews.put(page, pageView);
             pagesContainer.getChildren().add(pageView);
         }
     }
 
-    private void onSelectionDrawn(PdfPageView pageView, SelectionArea area) {
+    private void onSelectionDrawn(
+            PdfPageView pageView,
+            SelectionArea area
+    ) {
         destinationPopup.show(
                 this::isDestinationAvailable,
                 destination -> confirmSelection(area, destination),
@@ -325,7 +375,9 @@ public final class AreaSelectionController {
         );
     }
 
-    private boolean isDestinationAvailable(SelectionDestination destination) {
+    private boolean isDestinationAvailable(
+            SelectionDestination destination
+    ) {
         try {
             TemplateSlide slide = templateLayoutService.getSlides()
                     .stream()
@@ -353,96 +405,127 @@ public final class AreaSelectionController {
                     List.copyOf(assignments.values())
             );
         } catch (IOException exception) {
-            log.error("Não foi possível validar o destino da seleção.", exception);
+            log.error(
+                    "Não foi possível validar o destino da seleção.",
+                    exception
+            );
+
             return false;
         }
     }
 
-    private void confirmSelection(SelectionArea area, SelectionDestination destination) {
-        try {
-            SelectionDestination resolvedDestination = templateLayoutService.resolveDestination(
-                    destination,
-                    List.copyOf(assignments.values())
-            );
+    private void confirmSelection(
+            SelectionArea area,
+            SelectionDestination destination
+    ) {
+        SelectionDestination resolvedDestination = templateLayoutService.resolveDestination(
+                destination,
+                List.copyOf(assignments.values())
+        );
 
-            SelectionAssignment assignment = new SelectionAssignment(area, resolvedDestination);
+        int selectionOrder = nextSelectionOrder++;
 
-            assignments.put(assignment.id(), assignment);
+        SelectionAssignment assignment = new SelectionAssignment(
+                area,
+                resolvedDestination,
+                selectionOrder
+        );
 
-            addAssignmentToTree(assignment);
+        assignments.put(
+                assignment.id(),
+                assignment
+        );
 
-            selectionCount++;
-            updateSelectionCounter();
-        } catch (IOException exception) {
-            log.error("Não foi possível resolver o destino da seleção.", exception);
+        addAssignmentToTree(assignment);
 
-            PopupService.getInstance().error(
-                    "Destino inválido",
-                    exception.getMessage() == null
-                            ? "Não foi possível associar a seleção ao template."
-                            : exception.getMessage()
-            );
-        }
+        selectionCount++;
+
+        updateSelectionCounter();
     }
 
-    private void addAssignmentToTree(SelectionAssignment assignment) {
+    private void addAssignmentToTree(
+            SelectionAssignment assignment
+    ) {
         PdfPage page = assignment.page();
 
-        TreeItem<SelectionTreeNode> pdfNode = pdfNodes.computeIfAbsent(page.pdfNumber(), number -> {
-            TreeItem<SelectionTreeNode> item = new TreeItem<>(
-                    new SelectionTreeNode(NodeType.PDF, number, getPdfName(number))
-            );
+        TreeItem<SelectionTreeNode> pdfNode = pdfNodes.computeIfAbsent(
+                page.pdfNumber(),
+                number -> {
+                    TreeItem<SelectionTreeNode> item = new TreeItem<>(
+                            new SelectionTreeNode(
+                                    NodeType.PDF,
+                                    number,
+                                    getPdfName(number)
+                            )
+                    );
 
-            root.getChildren().add(item);
+                    root.getChildren().add(item);
 
-            return item;
-        });
-
-        TreeItem<SelectionTreeNode> pageNode = pageNodes.computeIfAbsent(page, currentPage -> {
-            TreeItem<SelectionTreeNode> item = new TreeItem<>(
-                    new SelectionTreeNode(
-                            NodeType.PAGE,
-                            currentPage,
-                            "Página " + currentPage.pageNumber()
-                    )
-            );
-
-            pdfNode.getChildren().add(item);
-
-            return item;
-        });
-
-        SelectionDestination destination = assignment.destination();
-
-        String copySuffix = destination.slideCopyNumber() > 1
-                ? " cópia " + destination.slideCopyNumber()
-                : "";
-
-        String nodeText = "Seleção %d → Slide %d%s / %s".formatted(
-                nextSelectionNumber++,
-                destination.slideNumber(),
-                copySuffix,
-                destination.slotLabel()
+                    return item;
+                }
         );
 
-        TreeItem<SelectionTreeNode> selectionNode = new TreeItem<>(
-                new SelectionTreeNode(
-                        NodeType.SELECTION,
-                        assignment,
-                        nodeText
-                )
+        TreeItem<SelectionTreeNode> pageNode = pageNodes.computeIfAbsent(
+                page,
+                currentPage -> {
+                    TreeItem<SelectionTreeNode> item = new TreeItem<>(
+                            new SelectionTreeNode(
+                                    NodeType.PAGE,
+                                    currentPage,
+                                    "Página " + currentPage.pageNumber()
+                            )
+                    );
+
+                    pdfNode.getChildren().add(item);
+
+                    return item;
+                }
         );
 
-        selectionNodes.put(assignment.id(), selectionNode);
+        TreeItem<SelectionTreeNode> selectionNode = getSelectionTreeNodeTreeItem(assignment);
+
+        selectionNodes.put(
+                assignment.id(),
+                selectionNode
+        );
+
         pageNode.getChildren().add(selectionNode);
 
         pdfNode.setExpanded(true);
         pageNode.setExpanded(true);
     }
 
+    private static @NonNull TreeItem<SelectionTreeNode> getSelectionTreeNodeTreeItem(SelectionAssignment assignment) {
+        SelectionDestination destination = assignment.destination();
+
+        String instanceSuffix = destination.slideInstance() > 1
+                ? " cópia " + destination.slideInstance()
+                : "";
+
+        String nodeText = "Seleção %d → Slide %d%s / %s".formatted(
+                assignment.selectionOrder(),
+                destination.sourceSlideNumber(),
+                instanceSuffix,
+                destination.slotLabel()
+        );
+
+        return new TreeItem<>(
+                new SelectionTreeNode(
+                        NodeType.SELECTION,
+                        assignment,
+                        nodeText
+                )
+        );
+    }
+
     private void onSelectionRemoved(SelectionArea area) {
-        SelectionAssignment removedAssignment = assignments.remove(area.id());
-        TreeItem<SelectionTreeNode> selectionNode = selectionNodes.remove(area.id());
+        SelectionAssignment removedAssignment = assignments.remove(
+                area.id()
+        );
+
+        TreeItem<SelectionTreeNode> selectionNode = selectionNodes.remove(
+                area.id()
+        );
 
         if (removedAssignment == null && selectionNode == null) {
             return;
@@ -455,16 +538,26 @@ public final class AreaSelectionController {
                 pageNode.getChildren().remove(selectionNode);
 
                 if (pageNode.getChildren().isEmpty()) {
-                    removeEmptyPage(area.page(), pageNode);
+                    removeEmptyPage(
+                            area.page(),
+                            pageNode
+                    );
                 }
             }
         }
 
-        selectionCount = Math.max(0, selectionCount - 1);
+        selectionCount = Math.max(
+                0,
+                selectionCount - 1
+        );
+
         updateSelectionCounter();
     }
 
-    private void removeEmptyPage(PdfPage page, TreeItem<SelectionTreeNode> pageNode) {
+    private void removeEmptyPage(
+            PdfPage page,
+            TreeItem<SelectionTreeNode> pageNode
+    ) {
         TreeItem<SelectionTreeNode> pdfNode = pageNode.getParent();
 
         pageNodes.remove(page);
@@ -482,7 +575,23 @@ public final class AreaSelectionController {
     }
 
     private List<SelectionAssignment> getAssignments() {
-        return List.copyOf(assignments.values());
+        return assignments.values()
+                .stream()
+                .sorted(
+                        java.util.Comparator
+                                .comparingInt(
+                                        (SelectionAssignment assignment) ->
+                                                assignment.page().pdfNumber()
+                                )
+                                .thenComparingInt(
+                                        assignment ->
+                                                assignment.page().pageNumber()
+                                )
+                                .thenComparingInt(
+                                        SelectionAssignment::selectionOrder
+                                )
+                )
+                .toList();
     }
 
     private String getPdfName(int pdfNumber) {
@@ -492,7 +601,9 @@ public final class AreaSelectionController {
             return "PDF " + pdfNumber;
         }
 
-        return workspace.getSelectedPdfs().get(index).getName();
+        return workspace.getSelectedPdfs()
+                .get(index)
+                .getName();
     }
 
     private void updateSelectionCounter() {
@@ -506,7 +617,10 @@ public final class AreaSelectionController {
     @FXML
     private void onBack() {
         stopAutoScroll();
-        SceneManager.getInstance().show(SceneType.HOME);
+
+        SceneManager.getInstance().show(
+                SceneType.HOME
+        );
     }
 
     @FXML
@@ -525,21 +639,40 @@ public final class AreaSelectionController {
         }
 
         try {
-            Path configPath = selectionConfigService.write(workspace, currentAssignments);
-            List<Path> generatedFiles = imageService.crop(workspace.getTemporaryDirectory(), configPath);
+            Path configPath = selectionConfigService.write(
+                    workspace,
+                    currentAssignments
+            );
+
+            List<Path> generatedFiles = imageService.crop(
+                    workspace.getTemporaryDirectory(),
+                    configPath
+            );
 
             PopupService.getInstance().show(
                     PopupType.SUCCESS,
                     "Processamento concluído",
                     "%d recortes foram criados e associados ao template."
                             .formatted(generatedFiles.size()),
-                    () -> SceneManager.getInstance().show(SceneType.PRESENTATION_PREVIEW)
+                    () -> SceneManager.getInstance().show(
+                            SceneType.PRESENTATION_PREVIEW
+                    )
             );
 
-            log.info("Processamento concluído. Configuração: {}", configPath);
-            log.info("Recortes criados: {}", generatedFiles.size());
+            log.info(
+                    "Processamento concluído. Configuração: {}",
+                    configPath
+            );
+
+            log.info(
+                    "Recortes criados: {}",
+                    generatedFiles.size()
+            );
         } catch (IOException | IllegalArgumentException exception) {
-            log.error("Erro ao gerar a configuração ou recortar as imagens.", exception);
+            log.error(
+                    "Erro ao gerar a configuração ou recortar as imagens.",
+                    exception
+            );
 
             PopupService.getInstance().error(
                     "Erro no processamento",

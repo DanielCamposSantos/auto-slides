@@ -7,12 +7,17 @@ import java.util.UUID;
 
 public record SelectionAssignment(
         SelectionArea area,
-        SelectionDestination destination
+        SelectionDestination destination,
+        int selectionOrder
 ) {
 
     public SelectionAssignment {
         Objects.requireNonNull(area);
         Objects.requireNonNull(destination);
+
+        if (selectionOrder < 1) {
+            throw new IllegalArgumentException("A ordem da seleção deve ser maior que zero.");
+        }
     }
 
     public UUID id() {

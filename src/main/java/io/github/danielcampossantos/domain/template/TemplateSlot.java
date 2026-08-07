@@ -3,6 +3,7 @@ package io.github.danielcampossantos.domain.template;
 public record TemplateSlot(
         String slotId,
         String label,
+        String shapeName,
         double x,
         double y,
         double width,
@@ -16,5 +17,4 @@ public record TemplateSlot(
     public String toString() {
         return label;
     }
-
 }

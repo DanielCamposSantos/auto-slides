@@ -1,7 +1,10 @@
 package io.github.danielcampossantos.ui.settings;
 
 import io.github.danielcampossantos.domain.template.PresentationTemplateInfo;
+import io.github.danielcampossantos.domain.template.TemplateLayout;
 import io.github.danielcampossantos.infrastructure.template.PresentationTemplateService;
+import io.github.danielcampossantos.infrastructure.template.TemplateAnalysisService;
+import io.github.danielcampossantos.infrastructure.template.TemplateLayoutStorageService;
 import io.github.danielcampossantos.infrastructure.template.TemplatePreferencesService;
 import io.github.danielcampossantos.ui.common.popup.PopupService;
 import io.github.danielcampossantos.ui.navigation.Reloadable;
@@ -26,6 +29,10 @@ public final class SettingsController implements Reloadable {
     private final TemplatePreferencesService templatePreferencesService = TemplatePreferencesService.getInstance();
 
     private final PresentationTemplateService presentationTemplateService = new PresentationTemplateService();
+
+    private final TemplateAnalysisService templateAnalysisService = new TemplateAnalysisService();
+
+    private final TemplateLayoutStorageService templateLayoutStorageService = new TemplateLayoutStorageService();
 
     @FXML
     private StackPane rootPane;
@@ -79,16 +86,7 @@ public final class SettingsController implements Reloadable {
 
     @FXML
     private void onChooseTemplate() {
-        FileChooser chooser = new FileChooser();
-
-        chooser.setTitle("Selecionar template do PowerPoint");
-
-        chooser.getExtensionFilters().setAll(
-                new FileChooser.ExtensionFilter(
-                        "Apresentações do PowerPoint",
-                        "*.pptx"
-                )
-        );
+        FileChooser chooser = createTemplateFileChooser();
 
         configureInitialDirectory(chooser);
 
@@ -100,39 +98,165 @@ public final class SettingsController implements Reloadable {
             return;
         }
 
-        Path templatePath = selectedFile.toPath();
+        configureTemplate(selectedFile.toPath());
+    }
 
+    private FileChooser createTemplateFileChooser() {
+        FileChooser chooser = new FileChooser();
+
+        chooser.setTitle(
+                "Selecionar template do PowerPoint"
+        );
+
+        chooser.getExtensionFilters().setAll(
+                new FileChooser.ExtensionFilter(
+                        "Apresentações do PowerPoint",
+                        "*.pptx"
+                )
+        );
+
+        return chooser;
+    }
+
+    private void configureTemplate(Path templatePath) {
         try {
-            PresentationTemplateInfo templateInfo = presentationTemplateService.inspect(templatePath);
+            PresentationTemplateInfo templateInfo = presentationTemplateService.inspect(
+                    templatePath
+            );
+
+            TemplateLayout templateLayout = templateAnalysisService.analyze(
+                    templateInfo.path()
+            );
+
+            validateTemplateSlots(templateLayout);
+
+            Path layoutPath = templateLayoutStorageService.save(
+                    templateLayout
+            );
+
+            templatePreferencesService.saveTemplate(
+                    templateInfo.path(),
+                    layoutPath,
+                    templateLayout.templateId()
+            );
 
             selectedTemplate = templateInfo.path();
 
-            templatePreferencesService.saveTemplate(selectedTemplate);
-
-            showTemplateInformation(templateInfo);
+            showTemplateInformation(
+                    templateInfo,
+                    templateLayout
+            );
 
             PopupService.getInstance().success(
                     "Template configurado",
-                    "O template foi validado e será utilizado nas próximas apresentações."
+                    createSuccessMessage(
+                            templateLayout,
+                            layoutPath
+                    )
             );
 
-            log.info("Template configurado: {}", selectedTemplate);
-        } catch (IOException exception) {
-            log.error("Não foi possível configurar o template.", exception);
+            log.info(
+                    "Template configurado: {}",
+                    selectedTemplate
+            );
+
+            log.info(
+                    "Layout do template salvo em: {}",
+                    layoutPath
+            );
+        } catch (IOException | IllegalArgumentException exception) {
+            log.error(
+                    "Não foi possível configurar o template.",
+                    exception
+            );
 
             PopupService.getInstance().error(
                     "Template inválido",
                     exception.getMessage() == null
-                            ? "Não foi possível ler o arquivo selecionado."
+                            ? "Não foi possível analisar o arquivo selecionado."
                             : exception.getMessage()
             );
         }
+    }
+
+    private void validateTemplateSlots(
+            TemplateLayout templateLayout
+    ) throws IOException {
+        long slotCount = templateLayout.slides()
+                .stream()
+                .mapToLong(slide ->
+                        slide.slots().size()
+                )
+                .sum();
+
+        if (slotCount == 0) {
+            throw new IOException(
+                    """
+                            O template não possui nenhum espaço configurado.
+                            
+                            No PowerPoint, renomeie as formas destinadas às imagens usando:
+                            
+                            AUTO_SLOT::identificador::Nome exibido
+                            """
+            );
+        }
+    }
+
+    private String createSuccessMessage(
+            TemplateLayout templateLayout,
+            Path layoutPath
+    ) {
+        int slideCount = templateLayout.slides().size();
+
+        long slotCount = templateLayout.slides()
+                .stream()
+                .mapToLong(slide ->
+                        slide.slots().size()
+                )
+                .sum();
+
+        String slidesText = slideCount == 1
+                ? "1 slide analisado"
+                : slideCount + " slides analisados";
+
+        String slotsText = slotCount == 1
+                ? "1 espaço de imagem encontrado"
+                : slotCount + " espaços de imagem encontrados";
+
+        return """
+                O template foi analisado e configurado corretamente.
+                
+                %s
+                %s
+                
+                Configuração:
+                %s
+                """.formatted(
+                slidesText,
+                slotsText,
+                layoutPath
+        );
     }
 
     @FXML
     private void onRemoveTemplate() {
         if (selectedTemplate == null) {
             return;
+        }
+
+        Optional<String> templateId = templatePreferencesService.getTemplateId();
+
+        try {
+            if (templateId.isPresent()) {
+                templateLayoutStorageService.delete(
+                        templateId.get()
+                );
+            }
+        } catch (IOException exception) {
+            log.error(
+                    "Não foi possível excluir a configuração persistida do template.",
+                    exception
+            );
         }
 
         templatePreferencesService.clearTemplate();
@@ -149,16 +273,37 @@ public final class SettingsController implements Reloadable {
 
     @FXML
     private void onBack() {
-        SceneManager.getInstance().show(SceneType.HOME);
+        SceneManager.getInstance().show(
+                SceneType.HOME
+        );
     }
 
-    private void loadTemplateInformation(Path templatePath) {
+    private void loadTemplateInformation(
+            Path templatePath
+    ) {
         try {
-            PresentationTemplateInfo templateInfo = presentationTemplateService.inspect(templatePath);
+            PresentationTemplateInfo templateInfo = presentationTemplateService.inspect(
+                    templatePath
+            );
 
-            showTemplateInformation(templateInfo);
+            Path layoutPath = templatePreferencesService.getLayoutPath()
+                    .orElseThrow(() -> new IOException(
+                            "A configuração do template não foi encontrada."
+                    ));
+
+            TemplateLayout templateLayout = templateLayoutStorageService.read(
+                    layoutPath
+            );
+
+            showTemplateInformation(
+                    templateInfo,
+                    templateLayout
+            );
         } catch (IOException exception) {
-            log.error("O template salvo não pôde ser carregado.", exception);
+            log.error(
+                    "O template salvo não pôde ser carregado.",
+                    exception
+            );
 
             templatePreferencesService.clearTemplate();
 
@@ -168,19 +313,39 @@ public final class SettingsController implements Reloadable {
 
             PopupService.getInstance().warning(
                     "Template indisponível",
-                    "O template salvo foi removido, renomeado ou está inválido. Selecione outro arquivo."
+                    """
+                            O template ou sua configuração foram removidos, renomeados ou estão inválidos.
+                            
+                            Selecione novamente o arquivo PowerPoint.
+                            """
             );
         }
     }
 
-    private void showTemplateInformation(PresentationTemplateInfo templateInfo) {
-        templateNameLabel.setText(templateInfo.fileName());
-        templatePathLabel.setText(templateInfo.path().toString());
+    private void showTemplateInformation(
+            PresentationTemplateInfo templateInfo,
+            TemplateLayout templateLayout
+    ) {
+        templateNameLabel.setText(
+                templateInfo.fileName()
+        );
+
+        templatePathLabel.setText(
+                templateInfo.path().toString()
+        );
+
+        long slotCount = templateLayout.slides()
+                .stream()
+                .mapToLong(slide ->
+                        slide.slots().size()
+                )
+                .sum();
 
         slideCountLabel.setText(
-                templateInfo.slideCount() == 1
-                        ? "1 slide"
-                        : templateInfo.slideCount() + " slides"
+                createSlideInformationText(
+                        templateInfo.slideCount(),
+                        slotCount
+                )
         );
 
         slideSizeLabel.setText(
@@ -190,33 +355,71 @@ public final class SettingsController implements Reloadable {
                 )
         );
 
-        chooseTemplateButton.setText("Trocar template");
-        removeTemplateButton.setDisable(false);
+        chooseTemplateButton.setText(
+                "Trocar template"
+        );
+
+        removeTemplateButton.setDisable(
+                false
+        );
+    }
+
+    private String createSlideInformationText(
+            int slideCount,
+            long slotCount
+    ) {
+        String slidesText = slideCount == 1
+                ? "1 slide"
+                : slideCount + " slides";
+
+        String slotsText = slotCount == 1
+                ? "1 espaço"
+                : slotCount + " espaços";
+
+        return slidesText + " • " + slotsText;
     }
 
     private void showEmptyState() {
-        templateNameLabel.setText("Nenhum template configurado");
+        templateNameLabel.setText(
+                "Nenhum template configurado"
+        );
 
         templatePathLabel.setText(
                 "Selecione um arquivo .pptx para liberar o fluxo de criação."
         );
 
-        slideCountLabel.setText("Nenhum slide");
-        slideSizeLabel.setText("Dimensões indisponíveis");
+        slideCountLabel.setText(
+                "Nenhum slide"
+        );
 
-        chooseTemplateButton.setText("Selecionar template");
-        removeTemplateButton.setDisable(true);
+        slideSizeLabel.setText(
+                "Dimensões indisponíveis"
+        );
+
+        chooseTemplateButton.setText(
+                "Selecionar template"
+        );
+
+        removeTemplateButton.setDisable(
+                true
+        );
     }
 
-    private void configureInitialDirectory(FileChooser chooser) {
-        if (selectedTemplate == null || selectedTemplate.getParent() == null) {
+    private void configureInitialDirectory(
+            FileChooser chooser
+    ) {
+        if (selectedTemplate == null
+                || selectedTemplate.getParent() == null) {
             return;
         }
 
-        File directory = selectedTemplate.getParent().toFile();
+        File directory = selectedTemplate.getParent()
+                .toFile();
 
         if (directory.isDirectory()) {
-            chooser.setInitialDirectory(directory);
+            chooser.setInitialDirectory(
+                    directory
+            );
         }
     }
 }
